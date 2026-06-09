@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6433929715410587924
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 80604588385729822}
+  - component: {fileID: 2839376445973033052}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &80604588385729822
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6433929715410587924}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2839376445973033052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6433929715410587924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f28f9dbeda4a48743b06415b0d36e0b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  gridManager: {fileID: 0}
+  trayContainer: {fileID: 0}
+  piecePrefab: {fileID: 8464705997534955316, guid: 64038c39c5911b34db9e35f6d9bfefbd, type: 3}
+  beltPrefab: {fileID: 2088355005548993731, guid: 3fef3e1df2c3c9e45b13b3c0c4e2e2b8, type: 3}
+  currentLevel: {fileID: 11400000, guid: f2d692be233473a4a9912b0be0b9a21c, type: 2}
+  winPanel: {fileID: 0}
+  undoButton: {fileID: 0}
+  scrollbarWidth: 30
+  scrollbarBgColor: {r: 0.15, g: 0.15, b: 0.15, a: 0.8}
+  scrollbarHandleColor: {r: 0.081722096, g: 0.7830189, b: 0, a: 0.9}
+  worldNavigator: {fileID: 0}
+  levelIndex: 0

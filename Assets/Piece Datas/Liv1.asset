@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584b8f60156c9c145bf0c90766bdcb80, type: 3}
+  m_Name: Liv1
+  m_EditorClassIdentifier: Assembly-CSharp::LevelData
+  gridWidth: 12
+  gridHeight: 12
+  inactiveCells:
+  - {x: 2, y: 0}
+  - {x: 3, y: 0}
+  - {x: 4, y: 0}
+  - {x: 2, y: 1}
+  - {x: 3, y: 1}
+  - {x: 4, y: 1}
+  - {x: 8, y: 1}
+  - {x: 9, y: 1}
+  - {x: 10, y: 1}
+  - {x: 11, y: 1}
+  - {x: 8, y: 2}
+  - {x: 9, y: 2}
+  - {x: 10, y: 2}
+  - {x: 11, y: 2}
+  - {x: 3, y: 3}
+  - {x: 3, y: 4}
+  - {x: 5, y: 4}
+  - {x: 6, y: 4}
+  - {x: 3, y: 5}
+  - {x: 5, y: 5}
+  - {x: 6, y: 5}
+  - {x: 9, y: 5}
+  - {x: 9, y: 6}
+  - {x: 10, y: 6}
+  - {x: 11, y: 6}
+  - {x: 1, y: 7}
+  - {x: 2, y: 7}
+  - {x: 3, y: 7}
+  - {x: 2, y: 8}
+  - {x: 2, y: 9}
+  - {x: 5, y: 9}
+  - {x: 10, y: 9}
+  - {x: 11, y: 9}
+  - {x: 2, y: 10}
+  - {x: 5, y: 10}
+  - {x: 8, y: 10}
+  - {x: 1, y: 11}
+  - {x: 2, y: 11}
+  - {x: 3, y: 11}
+  - {x: 8, y: 11}
+  - {x: 9, y: 11}
+  circuitSource: {x: 10, y: 11}
+  circuitDestination: {x: 0, y: 10}
+  sourceEnergyTypes: 00000000010000000200000003000000
+  destEnergyTypes: 00000000020000000100000003000000
+  availablePieces: []
