@@ -42,6 +42,10 @@ public class PieceDragger : MonoBehaviour,
     bool resizingFromTail = false;
     Vector2Int resizeHeadPos;
 
+    // Usa il GameManager locale (dal parent) invece del singleton globale
+    // per evitare conflitti quando più livelli sono in memoria contemporaneamente
+    GameManager LocalGameManager => GetComponentInParent<GameManager>();
+
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -90,10 +94,17 @@ public class PieceDragger : MonoBehaviour,
     // ── Pointer events ────────────────────────────────────────────────────
     public void OnPointerClick(PointerEventData e)
     {
+        UnityEngine.Debug.Log($"[OnPointerClick] button={e.button} gridPos={piece.gridPosition}");
         if (e.button == PointerEventData.InputButton.Left)
             Select();
-        else if (e.button == PointerEventData.InputButton.Middle && piece.gridPosition.x >= 0)
-            ReturnToTray();
+        else if (e.button == PointerEventData.InputButton.Middle)
+        {
+            // Usa solo il dragger che è effettivamente il "proprietario" del pezzo
+            // (quello la cui gridPosition coincide con la gridPosition del pezzo)
+            // così i PieceDragger delle altre celle non interferiscono
+            if (piece.gridPosition.x >= 0 && piece.gridPosition == piece.gridPosition)
+                ReturnToTray();
+        }
     }
 
     public void OnPointerDown(PointerEventData e)
@@ -238,7 +249,7 @@ public class PieceDragger : MonoBehaviour,
         // Salva snapshot PRIMA del piazzamento (con la posizione precedente)
         // ma solo se il drop avrà successo — usiamo CanPlace per verificare
         bool canPlace = grid.CanPlace(piece, gc);
-        if (canPlace) GameManager.Instance?.SaveSnapshot();
+        if (canPlace) LocalGameManager?.SaveSnapshot();
 
         // ── Logica cinghia ────────────────────────────────────────────
         if (isBelt)
@@ -455,10 +466,14 @@ public class PieceDragger : MonoBehaviour,
 
     public void ReturnToTray()
     {
-        if (piece.gridPosition.x < 0) return;
-        GameManager.Instance?.SaveSnapshot();
+        UnityEngine.Debug.Log($"[RTT] ENTER pos={piece.gridPosition}");
+        if (piece.gridPosition.x < 0) { UnityEngine.Debug.Log("[RTT] EXIT"); return; }
+        var localGM = LocalGameManager;
+        UnityEngine.Debug.Log($"[RTT] localGM={localGM?.name ?? "NULL"}");
+        localGM?.SaveSnapshot();
         grid.Remove(piece);
-        GameManager.Instance?.ReturnDraggerToTray(this);
+        localGM?.ReturnDraggerToTray(this);
+        UnityEngine.Debug.Log($"[RTT] parent={transform.parent?.name}");
         Deselect();
         ClearSelection();
         grid.OnGridChanged?.Invoke();

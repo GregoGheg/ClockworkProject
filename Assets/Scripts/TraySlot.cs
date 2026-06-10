@@ -66,11 +66,13 @@ public class TraySlot : MonoBehaviour
     }
     public void ReturnFromDrag(PieceDragger returning)
     {
+        UnityEngine.Debug.Log($"[ReturnFromDrag] slot={name} returning={returning.name} parentBefore={returning.transform.parent?.name}");
         returning.transform.SetParent(transform, false);
         ResetDraggerPosition(returning);
         available = Mathf.Min(available + 1, draggers.Count);
         UpdateBadge();
         UpdateVisibility();
+        UnityEngine.Debug.Log($"[ReturnFromDrag] parentAfter={returning.transform.parent?.name} active={returning.gameObject.activeSelf}");
     }
 
     // Ripristina lo stato completo (chiamato dall'undo)

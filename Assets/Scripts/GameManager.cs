@@ -335,14 +335,28 @@ public class GameManager : MonoBehaviour
 
     public void ReturnDraggerToTray(PieceDragger dragger)
     {
+        UnityEngine.Debug.Log($"[ReturnDraggerToTray] dragger={dragger.name} traySlots={traySlots.Count}");
         foreach (var slot in traySlots)
         {
-            if (slot.GetDraggers().Contains(dragger))
+            var slotDraggers = slot.GetDraggers();
+            if (slotDraggers.Contains(dragger))
             {
                 slot.ReturnFromDrag(dragger);
                 return;
             }
         }
+        UnityEngine.Debug.Log($"[ReturnDraggerToTray] NOT FOUND — forcing reparent to first slot");
+        // Fallback: se non trovato nei slot, cerca il slot con lo stesso PieceData
+        foreach (var slot in traySlots)
+        {
+            var slotDraggers = slot.GetDraggers();
+            if (slotDraggers.Count > 0 && slotDraggers[0].piece.data == dragger.piece.data)
+            {
+                slot.ReturnFromDrag(dragger);
+                return;
+            }
+        }
+        UnityEngine.Debug.Log($"[ReturnDraggerToTray] TOTAL FAIL for {dragger.name}");
     }
 
     // ── Circuito ──────────────────────────────────────────────────────────
@@ -350,17 +364,36 @@ public class GameManager : MonoBehaviour
     {
         worldNavigator?.NotifyInventoryChanged();
 
-        bool solved = CircuitSolver.Solve(
-            gridManager,
-            currentLevel.circuitSource,
-            currentLevel.circuitDestination);
-
-        if (solved && currentLevel.DestAccepts(EnergyType.Mechanical))
+        // Controlla se il livello è risolto via meccanico (richiede gear ON alla dest)
+        bool solvedViaMech = false;
+        if (currentLevel.DestAccepts(EnergyType.Mechanical))
         {
-            var gearVis = gridManager.GetComponent<GearVisualizer>();
-            if (gearVis != null)
-                solved = gearVis.IsDestinationOn(currentLevel.circuitDestination);
+            var mechReached = CircuitSolver.GetReachedCells(gridManager,
+                currentLevel.circuitSource, EnergyType.Mechanical);
+            if (mechReached.Contains(currentLevel.circuitDestination))
+            {
+                var gearVis = gridManager.GetComponent<GearVisualizer>();
+                solvedViaMech = gearVis == null || gearVis.IsDestinationOn(currentLevel.circuitDestination);
+            }
         }
+
+        // Controlla via altri tipi (nessun check extra)
+        bool solvedViaOther = false;
+        foreach (var type in new[] { EnergyType.Electric, EnergyType.Hydraulic })
+        {
+            if (!currentLevel.DestAccepts(type)) continue;
+            var reached = CircuitSolver.GetReachedCells(gridManager,
+                currentLevel.circuitSource, type);
+            if (reached.Contains(currentLevel.circuitDestination))
+            { solvedViaOther = true; break; }
+        }
+        // Controlla anche via convertitori
+        if (!solvedViaOther)
+            solvedViaOther = CircuitSolver.Solve(gridManager,
+                currentLevel.circuitSource, currentLevel.circuitDestination)
+                && !solvedViaMech;
+
+        bool solved = solvedViaMech || solvedViaOther;
 
         if (solved)
         {

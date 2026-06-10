@@ -21,12 +21,18 @@ public class GearVisualizer : MonoBehaviour
 
     GridManager grid;
 
-    // coord → (transform sprite, isLarge, isOn)
+    [Header("Colori")]
+    public Color colorNormal = Color.white;
+    public Color colorConflict = new Color(1f, 0.15f, 0.1f, 1f);
+
+    // coord → (transform sprite, isLarge, isOn, inConflict)
     class GearEntry
     {
         public Transform spriteTransform;
+        public Image spriteImage;
         public bool isLarge;
         public bool isOn;
+        public bool inConflict;
     }
 
     Dictionary<Vector2Int, GearEntry> activeGears = new();
@@ -55,8 +61,16 @@ public class GearVisualizer : MonoBehaviour
         var map = CircuitSolver.BuildConductMap(grid);
         var source = grid.level.circuitSource;
 
-        // GetGearStates include solo le celle raggiute dall'energia meccanica
+        // GetGearStates include solo le celle raggiunte dall'energia meccanica
+        // AddBeltGearsToMap aggiunge i gear collegati via cinghia alla mappa
+        MechanicalSolver.AddBeltGearsToMap(map, grid);
         var states = MechanicalSolver.GetGearStates(map, source, grid);
+        // Calcola conflitti e propaga il blocco all'intera catena
+        var directConflicts = MechanicalSolver.GetConflicts(states, grid);
+        var allConflicts = MechanicalSolver.PropagateConflicts(directConflicts, states, map, grid);
+        // PropagateReached assicura che i gear via cinghia siano in reached per la visualizzazione
+        var mechReached = MechanicalSolver.GetReachedCells(map, source);
+        BeltSolver.PropagateReached(mechReached, grid);
 
         activeGears.Clear();
 
@@ -104,12 +118,17 @@ public class GearVisualizer : MonoBehaviour
                 if (child.name == "piece_sprite") { spriteT = child; break; }
             if (spriteT == null) continue;
 
+            var spriteImg = spriteT.GetComponent<Image>();
+            bool inConflict = allConflicts.Contains(coord);
+
             processedDraggers.Add(d);
             activeGears[coord] = new GearEntry
             {
                 spriteTransform = spriteT,
+                spriteImage = spriteImg,
                 isLarge = d.piece.data.isLarge,
-                isOn = isOn
+                isOn = isOn,
+                inConflict = inConflict
             };
         }
     }
@@ -121,9 +140,15 @@ public class GearVisualizer : MonoBehaviour
             var gear = kv.Value;
             if (gear.spriteTransform == null) continue;
 
-            float speed = gear.isLarge ? speedLarge : speedNormal;
-            float dir = gear.isOn ? -1f : 1f; // ON = orario (negativo in Unity UI), OFF = antiorario
+            // Colore: rosso se in conflitto, normale altrimenti
+            if (gear.spriteImage != null)
+                gear.spriteImage.color = gear.inConflict ? colorConflict : colorNormal;
 
+            // Fermo se in conflitto
+            if (gear.inConflict) continue;
+
+            float speed = gear.isLarge ? speedLarge : speedNormal;
+            float dir = gear.isOn ? -1f : 1f;
             gear.spriteTransform.Rotate(0f, 0f, dir * speed * Time.deltaTime);
         }
     }

@@ -23,27 +23,32 @@ public class NavigationButtons : MonoBehaviour
         if (navigator == null || navigator.config == null) return;
 
         int cur = navigator.CurrentIndex;
-        bool solved = navigator.IsSolved(cur);
         var curPos = navigator.config.levels[cur].mapPosition;
 
-        // Una freccia è visibile se:
-        // - Esiste un livello adiacente in quella direzione, E
-        // - Il livello corrente è risolto OPPURE il livello adiacente è già stato visitato/risolto
-        if (btnLeft) btnLeft.gameObject.SetActive(CanNavigate(curPos, Vector2Int.left, solved));
-        if (btnRight) btnRight.gameObject.SetActive(CanNavigate(curPos, Vector2Int.right, solved));
-        if (btnUp) btnUp.gameObject.SetActive(CanNavigate(curPos, Vector2Int.up, solved));
-        if (btnDown) btnDown.gameObject.SetActive(CanNavigate(curPos, Vector2Int.down, solved));
+        // Circuito attualmente attivo (live)
+        bool currentlyActive = navigator.IsCurrentLevelSolved();
+
+        if (btnLeft) btnLeft.gameObject.SetActive(CanNavigate(curPos, Vector2Int.left, currentlyActive));
+        if (btnRight) btnRight.gameObject.SetActive(CanNavigate(curPos, Vector2Int.right, currentlyActive));
+        if (btnUp) btnUp.gameObject.SetActive(CanNavigate(curPos, Vector2Int.up, currentlyActive));
+        if (btnDown) btnDown.gameObject.SetActive(CanNavigate(curPos, Vector2Int.down, currentlyActive));
     }
 
-    bool CanNavigate(Vector2Int curPos, Vector2Int dir, bool currentSolved)
+    bool CanNavigate(Vector2Int curPos, Vector2Int dir, bool currentlyActive)
     {
+        int cur = navigator.CurrentIndex;
         var targetPos = curPos + dir;
+
         for (int i = 0; i < navigator.config.levels.Length; i++)
         {
             if (navigator.config.levels[i].mapPosition != targetPos) continue;
-            // Livello adiacente trovato —
-            // visibile se il corrente è risolto OPPURE il target è già stato visitato
-            return currentSolved || navigator.IsSolved(i) || navigator.HasBeenVisited(i);
+
+            // Indietro (verso il parent nel tree) = sempre visibile
+            bool isBack = navigator.IsParent(i, cur);
+            if (isBack) return true;
+
+            // Avanti = visibile solo se il circuito è attualmente attivo
+            return currentlyActive;
         }
         return false;
     }

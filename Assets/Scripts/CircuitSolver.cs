@@ -22,6 +22,15 @@ public static class CircuitSolver
         return result;
     }
 
+    public static Dictionary<Vector2Int, HydraulicSolver.FlowCell> GetHydraulicFlowMap(
+        GridManager grid, Vector2Int source)
+    {
+        if (!grid.level.SourceEmits(EnergyType.Hydraulic))
+            return new Dictionary<Vector2Int, HydraulicSolver.FlowCell>();
+        var map = BuildConductMap(grid);
+        return HydraulicSolver.GetFlowMap(map, source, grid.Width, grid.Height, grid);
+    }
+
     public static HashSet<Vector2Int> GetReachedCells(
         GridManager grid, Vector2Int source, EnergyType type)
     {

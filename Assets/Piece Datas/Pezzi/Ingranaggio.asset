@@ -26,13 +26,14 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
   color: {r: 1, g: 1, b: 1, a: 0}
   trayRowColor: {r: 0.7137255, g: 0.22352941, b: 0, a: 1}
   resizable: 0
   isPump: 0
+  pumpOutDirection: 0
   isConverter: 0
   isGear: 1
   isLarge: 0
   isCollector: 0
   isBelt: 0
-  pumpOutDirection: 0

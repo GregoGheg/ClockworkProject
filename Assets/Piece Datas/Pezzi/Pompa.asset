@@ -26,7 +26,7 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
-    isPumpCell: 1
+    isPumpCell: 0
   - localCoord: {x: 0, y: 1}
     occupiesSpace: 1
     energyChannels:
@@ -36,7 +36,7 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
-    isPumpCell: 1
+    isPumpCell: 0
   - localCoord: {x: 1, y: 1}
     occupiesSpace: 1
     energyChannels:
@@ -56,7 +56,7 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
-    isPumpCell: 1
+    isPumpCell: 0
   color: {r: 1, g: 1, b: 1, a: 0}
   trayRowColor: {r: 0, g: 0.24313726, b: 0.7058824, a: 1}
   resizable: 0

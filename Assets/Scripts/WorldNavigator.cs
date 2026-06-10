@@ -25,6 +25,9 @@ public class WorldNavigator : MonoBehaviour
 
     // ── Stato ─────────────────────────────────────────────────────────────
     int currentIndex = 0;
+    // Albero di navigazione: per ogni livello visitato, da quale livello ci si è arrivati
+    // Il livello iniziale ha parent -1 (radice)
+    Dictionary<int, int> navigationParent = new(); // index → parent index
     bool isTransitioning = false;
     RectTransform worldRect;
     List<LevelViewController> levelViews = new();
@@ -44,6 +47,7 @@ public class WorldNavigator : MonoBehaviour
         InitGlobalInventory();
         BuildWorld();
         currentIndex = Mathf.Clamp(config.startLevelIndex, 0, config.levels.Length - 1);
+        navigationParent[currentIndex] = -1; // radice dell'albero
         SnapToLevel(currentIndex);
         LoadLevel(currentIndex);
     }
@@ -131,6 +135,22 @@ public class WorldNavigator : MonoBehaviour
     {
         if (index < 0 || index >= config.levels.Length) return;
         if (index == currentIndex || isTransitioning) return;
+
+        // "Indietro" = tornare al parent nel tree di navigazione
+        bool isGoingBack = navigationParent.ContainsKey(currentIndex)
+                        && navigationParent[currentIndex] == index;
+
+        // Indietro: sempre libero. Avanti: solo se il circuito è attualmente attivo
+        if (!isGoingBack)
+        {
+            if (!levelViews[currentIndex].IsCurrentlySolved()) return;
+        }
+
+        // Registra nel tree: se il livello target non ha ancora un parent, impostalo
+        // (se torna indietro e poi prende un altro ramo, il parent rimane quello originale)
+        if (!navigationParent.ContainsKey(index))
+            navigationParent[index] = currentIndex;
+
         SaveCurrentLevel();
         StartCoroutine(TransitionTo(index));
     }
@@ -203,4 +223,11 @@ public class WorldNavigator : MonoBehaviour
     public LevelSaveData GetSaveData(int i) => saveData.ContainsKey(i) ? saveData[i] : null;
     public bool IsSolved(int i) => saveData.ContainsKey(i) && saveData[i].solved;
     public bool HasBeenVisited(int i) => visited.Contains(i);
+
+    /// <summary>Ritorna true se il circuito del livello corrente è attivo in questo momento.</summary>
+    public bool IsCurrentLevelSolved() => levelViews[currentIndex].IsCurrentlySolved();
+
+    /// <summary>Ritorna true se candidateParent è il parent di child nel tree di navigazione.</summary>
+    public bool IsParent(int candidateParent, int child)
+        => navigationParent.ContainsKey(child) && navigationParent[child] == candidateParent;
 }

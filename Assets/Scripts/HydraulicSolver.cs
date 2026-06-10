@@ -51,13 +51,34 @@ public static class HydraulicSolver
         {
             var cur = queue.Dequeue();
 
-            // ── POMPA: se questa è la cella isPumpCell, lancia il getto ──
+            // ── POMPA: quando raggiungiamo qualsiasi cella della pompa,
+            //          assicuriamoci che la isPumpCell sia in queue e lanci il getto ──
             if (grid != null)
             {
                 var cs = grid.GetCell(cur.coord.x, cur.coord.y);
                 if (cs?.occupant?.data != null && cs.occupant.data.isPump)
                 {
                     var pumpPiece = cs.occupant;
+
+                    // Aggiungi tutte le celle della pompa a flow/visited se non già presenti
+                    // così il BFS le processerà tutte
+                    foreach (var lc in pumpPiece.CurrentCells())
+                    {
+                        var absPos = pumpPiece.gridPosition + lc.localCoord;
+                        if (!visited.Contains(absPos))
+                        {
+                            var pc2 = new FlowCell
+                            {
+                                coord = absPos,
+                                velocity = cur.velocity,
+                                energy = cur.energy,
+                                isCascade = false,
+                                cellsFallen = cur.cellsFallen
+                            };
+                            flow[absPos] = pc2; visited.Add(absPos); queue.Enqueue(pc2);
+                        }
+                    }
+
                     // Controlla se questa cella specifica è isPumpCell
                     bool thisIsPumpCell = false;
                     foreach (var lc in pumpPiece.CurrentCells())
@@ -65,7 +86,6 @@ public static class HydraulicSolver
                         var absPos = pumpPiece.gridPosition + lc.localCoord;
                         if (absPos == cur.coord && lc.isPumpCell) { thisIsPumpCell = true; break; }
                     }
-
                     if (thisIsPumpCell && !pumpFired.Contains(pumpPiece.gridPosition))
                     {
                         pumpFired.Add(pumpPiece.gridPosition);

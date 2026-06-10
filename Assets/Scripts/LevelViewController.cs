@@ -133,4 +133,18 @@ public class LevelViewController : MonoBehaviour
         }
         return save;
     }
+    /// <summary>
+    /// Ritorna true se il circuito del livello corrente è attualmente risolto.
+    /// Richiamato da WorldNavigator prima di permettere la navigazione.
+    /// </summary>
+    public bool IsCurrentlySolved()
+    {
+        if (gameManager?.gridManager == null) return false;
+        var gm = gameManager;
+        return CircuitSolver.Solve(
+            gm.gridManager,
+            gm.currentLevel.circuitSource,
+            gm.currentLevel.circuitDestination);
+    }
+
 }

@@ -165,12 +165,11 @@ public class CircuitParticleOverlay : MonoBehaviour
             pulseColor = ElectricColorForInstability(kv.Value, 0.6f);
             GetOrCreateDot(kv.Key);
         }
-        // Dot idrici — salta le celle in cascata (ci pensa CascadeAnimator)
+        // Dot idrici — solo celle con tubo (getto e cascata li gestisce CascadeAnimator)
         var hydrMap = CircuitSolver.BuildConductMap(grid);
         foreach (var coord in hydrReached)
         {
             if (mechReached.Contains(coord) || elecInstab.ContainsKey(coord)) continue;
-            // Salta celle senza tubo (sono cascata libera)
             if (!hydrMap.ContainsKey(coord)) continue;
             dotColor = colorHydraulic;
             pulseColor = colorHydraulicPulse;
@@ -214,8 +213,10 @@ public class CircuitParticleOverlay : MonoBehaviour
             if (mechReached.Contains(kv.Key) || elecInstab.ContainsKey(kv.Key) || hydrReached.Contains(kv.Key)) continue;
             if (kv.Value == EnergyType.Electric)
             {
-                float instab = genericElecInstab.ContainsKey(kv.Key) ? genericElecInstab[kv.Key] : 0f;
-                if (instab >= 10f) continue; // oltre soglia, non visualizzare
+                // Se la cella non è nel dizionario instabilità è oltre soglia — salta
+                if (!genericElecInstab.ContainsKey(kv.Key)) continue;
+                float instab = genericElecInstab[kv.Key];
+                if (instab >= 10f) continue;
                 dotColor = ElectricColorForInstability(instab);
                 pulseColor = ElectricColorForInstability(instab, 0.6f);
             }
@@ -251,19 +252,28 @@ public class CircuitParticleOverlay : MonoBehaviour
             GetOrCreateLine(from, to);
         }
         // Linee generiche — collega celle adiacenti nel genericFlow con colore del tipo adottato
+        // Salta celle elettriche con instabilità >= 10
         var genericVisited = new HashSet<(Vector2Int, Vector2Int)>();
         foreach (var kv in genericFlow)
         {
             var coord = kv.Key;
+            // Salta questa cella se è elettrica oltre soglia
+            if (kv.Value == EnergyType.Electric &&
+                (!genericElecInstab.ContainsKey(coord) || genericElecInstab[coord] >= 10f)) continue;
+
             foreach (var dir in new[] { Vector2Int.right, Vector2Int.up })
             {
                 var neighbor = coord + dir;
                 if (!genericFlow.ContainsKey(neighbor)) continue;
+                // Salta il neighbor se è elettrico oltre soglia
+                var neighborType = genericFlow[neighbor];
+                if (neighborType == EnergyType.Electric &&
+                    (!genericElecInstab.ContainsKey(neighbor) || genericElecInstab[neighbor] >= 10f)) continue;
+
                 var pair = (coord, neighbor);
                 if (genericVisited.Contains(pair)) continue;
                 genericVisited.Add(pair);
-                var adoptedType = genericFlow[coord] != EnergyType.Generic
-                    ? genericFlow[coord] : genericFlow[neighbor];
+                var adoptedType = kv.Value != EnergyType.Generic ? kv.Value : neighborType;
                 (lineColor, pulseColor) = LineColorForType(adoptedType);
                 GetOrCreateLine(coord, neighbor);
             }

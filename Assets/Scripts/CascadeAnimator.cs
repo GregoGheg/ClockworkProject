@@ -33,8 +33,21 @@ public class CascadeAnimator : MonoBehaviour
         public float offset; // offset verticale corrente (0..1)
     }
 
+    // Colonne getto pompa (direzione arbitraria)
+    class JetColumn
+    {
+        public Vector2Int start;     // prima cella del getto
+        public List<Vector2Int> cells = new();
+        public List<RectTransform> dots = new();
+        public float offset;
+        public Vector2Int dir;       // direzione del getto
+    }
+
     List<CascadeColumn> columns = new();
+    List<JetColumn> jetColumns = new();
     List<RectTransform> dotPool = new();
+    List<RectTransform> linePool = new();
+    List<RectTransform> activeLines = new();
 
     void Awake()
     {
@@ -105,13 +118,72 @@ public class CascadeAnimator : MonoBehaviour
             if (col.height > 0) newColumns.Add(col);
         }
 
+        // Getti pompa: celle isCascade=false, non in conductMap, non cascata normale
+        var newJets = new List<JetColumn>();
+        foreach (var kv in flowMap)
+        {
+            if (kv.Value.isCascade) continue;
+            if (conductMap.ContainsKey(kv.Key)) continue;
+            if (cascadeCells.Contains(kv.Key)) continue;
+            // Questa è una cella di getto pompa — trova a quale getto appartiene
+            // cercando la direzione dal predecessore
+            // Raggruppa celle consecutive nella stessa direzione
+            // (le aggiungeremo per colonna sotto)
+        }
+
+        // Trova i getti: gruppi di celle vuote consecutive di getto pompa
+        // Ogni gruppo ha una direzione comune
+        var jetVisited = new HashSet<Vector2Int>();
+        var pumpJetCells = new HashSet<Vector2Int>();
+        foreach (var kv in flowMap)
+            if (!kv.Value.isCascade && !conductMap.ContainsKey(kv.Key) && !cascadeCells.Contains(kv.Key))
+                pumpJetCells.Add(kv.Key);
+
+        foreach (var startCell in pumpJetCells)
+        {
+            if (jetVisited.Contains(startCell)) continue;
+            // Determina la direzione: cerca il vicino che non è nel jet per trovare da dove viene
+            Vector2Int jetDir = Vector2Int.zero;
+            foreach (var d in new[] { Vector2Int.up, Vector2Int.down, Vector2Int.right, Vector2Int.left })
+            {
+                var prev = startCell - d;
+                if (pumpJetCells.Contains(prev) || conductMap.ContainsKey(prev) || cascadeCells.Contains(prev)) continue;
+                // startCell non ha predecessore in direzione d → d è la direzione del getto
+                // Verifica che il successore esista nel jet
+                if (pumpJetCells.Contains(startCell + d)) { jetDir = d; break; }
+            }
+            // Fallback: troviamo la direzione guardando dove punta la sequenza
+            if (jetDir == Vector2Int.zero)
+            {
+                foreach (var d in new[] { Vector2Int.up, Vector2Int.down, Vector2Int.right, Vector2Int.left })
+                    if (pumpJetCells.Contains(startCell + d) && !pumpJetCells.Contains(startCell - d))
+                    { jetDir = d; break; }
+            }
+            if (jetDir == Vector2Int.zero) { jetVisited.Add(startCell); continue; }
+
+            // Risali all'inizio della sequenza
+            var head = startCell;
+            while (pumpJetCells.Contains(head - jetDir)) head -= jetDir;
+
+            // Costruisci la colonna
+            var jet = new JetColumn { start = head, dir = jetDir };
+            var cur2 = head;
+            while (pumpJetCells.Contains(cur2))
+            {
+                jet.cells.Add(cur2);
+                jetVisited.Add(cur2);
+                cur2 += jetDir;
+            }
+            if (jet.cells.Count > 0) newJets.Add(jet);
+        }
+
         // Ricicla o crea pallini
         ReturnAllDots();
         columns = newColumns;
+        jetColumns = newJets;
 
         foreach (var col in columns)
         {
-            // Numero di pallini proporzionale alla lunghezza della colonna
             int count = Mathf.Max(1, Mathf.FloorToInt(col.height / dotSpacing));
             for (int i = 0; i < count; i++)
             {
@@ -119,6 +191,30 @@ public class CascadeAnimator : MonoBehaviour
                 col.dots.Add(dot);
             }
             col.offset = 0f;
+        }
+
+        foreach (var jet in jetColumns)
+        {
+            int count = Mathf.Max(1, Mathf.FloorToInt(jet.cells.Count / dotSpacing));
+            for (int i = 0; i < count; i++)
+            {
+                var dot = GetOrCreateDot();
+                jet.dots.Add(dot);
+            }
+            jet.offset = 0f;
+        }
+
+        // Linee getto: una per ogni segmento tra celle adiacenti del getto
+        ReturnAllLines();
+        float cellSize = grid.cellSize;
+        foreach (var jet in jetColumns)
+        {
+            for (int i = 0; i < jet.cells.Count - 1; i++)
+            {
+                var line = GetOrCreateLine();
+                PositionLine(line, jet.cells[i], jet.cells[i + 1], cellSize);
+                activeLines.Add(line);
+            }
         }
     }
 
@@ -129,10 +225,8 @@ public class CascadeAnimator : MonoBehaviour
 
         foreach (var col in columns)
         {
-            // offset avanza in celle/sec assolute — stessa velocità per qualsiasi lunghezza
-            // scrollSpeed celle/sec → offset in celle (non normalizzato)
             col.offset += scrollSpeed * Time.deltaTime;
-            float totalHeight = col.height * size; // altezza totale in pixel
+            float totalHeight = col.height * size;
             if (col.offset * size > totalHeight) col.offset -= col.height;
 
             for (int i = 0; i < col.dots.Count; i++)
@@ -140,7 +234,6 @@ public class CascadeAnimator : MonoBehaviour
                 var dot = col.dots[i];
                 if (dot == null) continue;
 
-                // Posizione in celle dal top, distribuita uniformemente
                 float cellPos = (col.offset + (float)i * col.height / col.dots.Count) % col.height;
                 if (cellPos < 0) cellPos += col.height;
 
@@ -160,10 +253,93 @@ public class CascadeAnimator : MonoBehaviour
                 dot.gameObject.SetActive(true);
 
                 var img = dot.GetComponent<Image>();
-                if (img != null)
-                    img.color = dotColor;
+                if (img != null) img.color = dotColor;
             }
         }
+
+        // Animazione getti pompa
+        foreach (var jet in jetColumns)
+        {
+            if (jet.cells.Count == 0) continue;
+            jet.offset += scrollSpeed * Time.deltaTime;
+            if (jet.offset >= jet.cells.Count) jet.offset -= jet.cells.Count;
+
+            for (int i = 0; i < jet.dots.Count; i++)
+            {
+                var dot = jet.dots[i];
+                if (dot == null) continue;
+
+                float cellPos = (jet.offset + (float)i * jet.cells.Count / jet.dots.Count) % jet.cells.Count;
+                if (cellPos < 0) cellPos += jet.cells.Count;
+
+                int cellIdx = Mathf.FloorToInt(cellPos);
+                float frac = cellPos - cellIdx;
+                cellIdx = Mathf.Clamp(cellIdx, 0, jet.cells.Count - 1);
+
+                var cellCoord = jet.cells[cellIdx];
+                var worldPos = CellToCanvasPos(cellCoord, size);
+                // Offset sub-cella nella direzione del getto
+                worldPos.x += frac * size * jet.dir.x;
+                worldPos.y += frac * size * jet.dir.y;
+
+                float radius = size * dotSize;
+                dot.sizeDelta = Vector2.one * radius * 2f;
+                dot.anchoredPosition = new Vector2(
+                    worldPos.x + size * 0.5f - radius,
+                    worldPos.y + size * 0.5f - radius);
+                dot.gameObject.SetActive(true);
+
+                var img = dot.GetComponent<Image>();
+                if (img != null) img.color = dotColor;
+            }
+        }
+    }
+
+    void PositionLine(RectTransform rt, Vector2Int from, Vector2Int to, float size)
+    {
+        float half = size * 0.5f;
+        float thickness = size * 0.06f;
+        Vector2 fromCenter = new Vector2(from.x * size + half, from.y * size + half);
+        Vector2 toCenter = new Vector2(to.x * size + half, to.y * size + half);
+        Vector2 dir = (toCenter - fromCenter).normalized;
+        float length = Vector2.Distance(fromCenter, toCenter);
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        rt.anchoredPosition = fromCenter;
+        rt.sizeDelta = new Vector2(length, thickness);
+        rt.localEulerAngles = new Vector3(0, 0, angle);
+        rt.pivot = new Vector2(0f, 0.5f);
+        rt.gameObject.SetActive(true);
+        var img = rt.GetComponent<Image>();
+        if (img != null) img.color = new Color(dotColor.r, dotColor.g, dotColor.b, 0.5f);
+    }
+
+    RectTransform GetOrCreateLine()
+    {
+        for (int i = 0; i < linePool.Count; i++)
+        {
+            if (linePool[i] != null && !linePool[i].gameObject.activeSelf)
+            {
+                var l = linePool[i];
+                linePool.RemoveAt(i);
+                return l;
+            }
+        }
+        var go = new GameObject("JetLine");
+        go.transform.SetParent(transform, false);
+        var img = go.AddComponent<Image>();
+        img.raycastTarget = false;
+        img.color = new Color(dotColor.r, dotColor.g, dotColor.b, 0.5f);
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.zero;
+        return rt;
+    }
+
+    void ReturnAllLines()
+    {
+        foreach (var l in activeLines)
+            if (l != null) { l.gameObject.SetActive(false); linePool.Add(l); }
+        activeLines.Clear();
     }
 
     Vector2 CellToCanvasPos(Vector2Int cell, float size)
@@ -178,6 +354,11 @@ public class CascadeAnimator : MonoBehaviour
             foreach (var dot in col.dots)
                 if (dot != null) { dot.gameObject.SetActive(false); dotPool.Add(dot); }
         columns.Clear();
+        foreach (var jet in jetColumns)
+            foreach (var dot in jet.dots)
+                if (dot != null) { dot.gameObject.SetActive(false); dotPool.Add(dot); }
+        jetColumns.Clear();
+        ReturnAllLines();
     }
 
     RectTransform GetOrCreateDot()
