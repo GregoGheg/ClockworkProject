@@ -60,4 +60,5 @@ MonoBehaviour:
   circuitDestination: {x: 0, y: 10}
   sourceEnergyTypes: 00000000010000000200000003000000
   destEnergyTypes: 00000000020000000100000003000000
-  availablePieces: []
+  nodeSpacing: 24000
+  cellSize: 80

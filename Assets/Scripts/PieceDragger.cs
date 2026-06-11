@@ -466,14 +466,42 @@ public class PieceDragger : MonoBehaviour,
 
     public void ReturnToTray()
     {
-        UnityEngine.Debug.Log($"[RTT] ENTER pos={piece.gridPosition}");
-        if (piece.gridPosition.x < 0) { UnityEngine.Debug.Log("[RTT] EXIT"); return; }
+        if (piece.gridPosition.x < 0) return;
+
+        // 1. Nascondi tutti i dragger extra dello stesso pezzo (celle secondarie)
+        var allDraggers = grid.GetComponentsInChildren<PieceDragger>(true);
+        foreach (var d in allDraggers)
+            if (d.piece == piece && d != this)
+                d.gameObject.SetActive(false);
+
+        // 2. Rimuovi dalla griglia
         var localGM = LocalGameManager;
-        UnityEngine.Debug.Log($"[RTT] localGM={localGM?.name ?? "NULL"}");
         localGM?.SaveSnapshot();
         grid.Remove(piece);
-        localGM?.ReturnDraggerToTray(this);
-        UnityEngine.Debug.Log($"[RTT] parent={transform.parent?.name}");
+
+        // 3. Trova il TraySlot di appartenenza risalendo l'originalParent,
+        //    oppure cercandolo nel GameManager — senza dipendere dal singleton
+        TraySlot targetSlot = originalParent?.GetComponent<TraySlot>()
+                           ?? originalParent?.GetComponentInParent<TraySlot>();
+
+        if (targetSlot == null && localGM != null)
+            localGM.ReturnDraggerToTray(this);
+        else if (targetSlot != null)
+            targetSlot.ReturnFromDrag(this);
+        else
+        {
+            // Fallback: cerca un TraySlot nella scena che contenga questo dragger
+            foreach (var slot in UnityEngine.Object.FindObjectsByType<TraySlot>(
+                UnityEngine.FindObjectsSortMode.None))
+            {
+                if (slot.GetDraggers().Contains(this))
+                {
+                    slot.ReturnFromDrag(this);
+                    break;
+                }
+            }
+        }
+
         Deselect();
         ClearSelection();
         grid.OnGridChanged?.Invoke();

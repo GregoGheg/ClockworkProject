@@ -25,14 +25,11 @@ public class LevelData : ScriptableObject
     public bool DestAccepts(EnergyType type) =>
         destEnergyTypes.Count == 0 || destEnergyTypes.Contains(type);
 
-    [System.Serializable]
-    public struct PieceEntry
-    {
-        public PieceData data;
-        [Min(1)] public int quantity;
-    }
+    [Tooltip("Distanza in pixel tra i nodi della mappa per questo livello")]
+    public float nodeSpacing = 1200f;
 
-    public List<PieceEntry> availablePieces = new();
+    [Tooltip("Dimensione in pixel di ogni cella della griglia per questo livello")]
+    public float cellSize = 80f;
 
     public bool IsCellActive(Vector2Int coord) => !inactiveCells.Contains(coord);
 }

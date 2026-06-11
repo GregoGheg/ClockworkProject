@@ -77,6 +77,7 @@ public class LevelViewController : MonoBehaviour
         if (levelPrefab != null)
         {
             levelInstance = Instantiate(levelPrefab, transform);
+            levelInstance.SetActive(false); // blocca Awake finché level non è assegnato
             levelInstance.transform.localPosition = Vector3.zero;
         }
 
@@ -90,8 +91,14 @@ public class LevelViewController : MonoBehaviour
 
         if (levelInstance == null) return;
 
-        var gridMgr = levelInstance.GetComponentInChildren<GridManager>();
-        if (gridMgr != null) gameManager.gridManager = gridMgr;
+        var gridMgr = levelInstance.GetComponentInChildren<GridManager>(true);
+        if (gridMgr != null)
+        {
+            gridMgr.level = entry.levelData;
+            gridMgr.cellSize = entry.levelData.cellSize;
+            gameManager.gridManager = gridMgr;
+        }
+        levelInstance.SetActive(true); // ora Awake trova level già assegnato
 
         var scrollRect = levelInstance.GetComponentInChildren<ScrollRect>();
         if (scrollRect != null) gameManager.trayContainer = scrollRect.content;

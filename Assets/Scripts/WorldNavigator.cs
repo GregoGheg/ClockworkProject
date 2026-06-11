@@ -106,8 +106,8 @@ public class WorldNavigator : MonoBehaviour
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = new Vector2(
-                entry.mapPosition.x * config.nodeSpacing,
-                entry.mapPosition.y * config.nodeSpacing);
+                entry.mapPosition.x * entry.levelData.nodeSpacing,
+                entry.mapPosition.y * entry.levelData.nodeSpacing);
 
             var view = go.AddComponent<LevelViewController>();
             view.Init(entry, i, this, levelPrefab, gameManagerPrefab);
@@ -193,8 +193,8 @@ public class WorldNavigator : MonoBehaviour
     {
         var entry = config.levels[index];
         return new Vector2(
-            -entry.mapPosition.x * config.nodeSpacing,
-            -entry.mapPosition.y * config.nodeSpacing);
+            -entry.mapPosition.x * entry.levelData.nodeSpacing,
+            -entry.mapPosition.y * entry.levelData.nodeSpacing);
     }
 
     // ── Stato livelli ─────────────────────────────────────────────────────
@@ -219,10 +219,44 @@ public class WorldNavigator : MonoBehaviour
         if (labelSolvedIcon != null) labelSolvedIcon.color = solved ? colorSolved : colorUnsolved;
     }
 
+    // Bauli già aperti — chiave: "levelIndex_gridX_gridY"
+    readonly HashSet<string> openedChests = new();
+
     public int CurrentIndex => currentIndex;
     public LevelSaveData GetSaveData(int i) => saveData.ContainsKey(i) ? saveData[i] : null;
     public bool IsSolved(int i) => saveData.ContainsKey(i) && saveData[i].solved;
     public bool HasBeenVisited(int i) => visited.Contains(i);
+
+    /// <summary>
+    /// Chiamato da GameManager quando rileva un baule aperto.
+    /// Se il baule non era già stato aperto, aggiunge i premi al pool globale
+    /// e aggiorna il tray del livello corrente.
+    /// </summary>
+    public void OnChestOpened(int levelIdx, Vector2Int chestPos, PieceData chestData)
+    {
+        var key = $"{levelIdx}_{chestPos.x}_{chestPos.y}";
+        if (openedChests.Contains(key)) return; // già aperto, non dare premi di nuovo
+        openedChests.Add(key);
+
+        // Aggiungi i premi al pool globale
+        foreach (var reward in chestData.chestRewards)
+        {
+            if (reward.data == null) continue;
+            var existing = config.globalPieces.Find(g => g.data == reward.data);
+            if (existing != null)
+                existing.quantity += reward.quantity;
+            else
+                config.globalPieces.Add(new WorldLevelConfig.GlobalPieceEntry
+                { data = reward.data, quantity = reward.quantity });
+        }
+
+        // Aggiorna il tray di tutti i livelli inizializzati
+        foreach (var view in levelViews)
+            view.RefreshTray();
+    }
+
+    public bool IsChestOpen(int levelIdx, Vector2Int chestPos)
+        => openedChests.Contains($"{levelIdx}_{chestPos.x}_{chestPos.y}");
 
     /// <summary>Ritorna true se il circuito del livello corrente è attivo in questo momento.</summary>
     public bool IsCurrentLevelSolved() => levelViews[currentIndex].IsCurrentlySolved();

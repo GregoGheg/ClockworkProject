@@ -14,7 +14,7 @@ public class TrayScrollHandler : MonoBehaviour,
     IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [Header("Scroll")]
-    public float mouseWheelSpeed = 200f;
+    [HideInInspector] public float mouseWheelSpeed = 200f; // impostato da LevelViewController via WorldLevelConfig
 
     ScrollRect scrollRect;
     bool isDraggingScroll;

@@ -111,6 +111,26 @@ public class PieceData : ScriptableObject
 
     [Tooltip("Direzione OUT della pompa idrica (una sola)")]
 
+    // ── Baule ────────────────────────────────────────────────────────────
+    [System.Serializable]
+    public class ChestReward
+    {
+        public PieceData data;
+        [Min(1)] public int quantity = 1;
+    }
+
+    [Tooltip("Se true, questo pezzo è un baule che sblocca pezzi quando riceve l'energia giusta")]
+    public bool isChest = false;
+
+    [Tooltip("Tipo di energia richiesta per aprire il baule")]
+    public EnergyType chestRequiredEnergy = EnergyType.Mechanical;
+
+    [Tooltip("Lato da cui il baule deve ricevere l'energia")]
+    public ConnectionSides chestInputSide = ConnectionSides.Down;
+
+    [Tooltip("Pezzi sbloccati quando il baule viene aperto")]
+    public List<ChestReward> chestRewards = new();
+
     public Color GetTrayColor() =>
         trayRowColor.a > 0f ? trayRowColor : color;
 

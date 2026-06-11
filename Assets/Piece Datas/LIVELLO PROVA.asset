@@ -10,13 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 584b8f60156c9c145bf0c90766bdcb80, type: 3}
-  m_Name: BraccioDestro
+  m_Name: LIVELLO PROVA
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   gridWidth: 6
   gridHeight: 6
-  inactiveCells: []
-  circuitSource: {x: 0, y: 0}
-  circuitDestination: {x: 0, y: 0}
-  sourceEnergyTypes: 
-  destEnergyTypes: 
-  availablePieces: []
+  inactiveCells:
+  - {x: 0, y: 0}
+  - {x: 2, y: 0}
+  - {x: 4, y: 0}
+  circuitSource: {x: 5, y: 0}
+  circuitDestination: {x: 0, y: 5}
+  sourceEnergyTypes: 01000000020000000300000000000000
+  destEnergyTypes: 00000000010000000200000003000000
+  nodeSpacing: 1200
+  cellSize: 80

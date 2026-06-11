@@ -14,7 +14,7 @@ public class GridManager : MonoBehaviour
     [Header("Setup")]
     public LevelData level;
     public GridCell cellPrefab;
-    public float cellSize = 80f;
+    [HideInInspector] public float cellSize = 80f; // impostato da LevelViewController via WorldLevelConfig
 
     CellState[,] grid;
     GridCell[,] cellViews;
@@ -27,8 +27,23 @@ public class GridManager : MonoBehaviour
     readonly List<Piece> placedPieces = new();
     public IReadOnlyList<Piece> PlacedPieces => placedPieces;
 
+    bool initialized = false;
+
     void Awake()
     {
+        if (level != null) BuildGrid();
+    }
+
+    void Start()
+    {
+        // Fallback per uso standalone in Editor
+        if (!initialized && level != null) BuildGrid();
+    }
+
+    void BuildGrid()
+    {
+        if (initialized) return;
+        initialized = true;
         var rt = GetComponent<RectTransform>();
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.zero;

@@ -306,19 +306,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    List<LevelData.PieceEntry> GetPieceList()
+    List<(PieceData data, int quantity)> GetPieceList()
     {
-        if (worldNavigator != null && worldNavigator.config?.globalPieces?.Count > 0)
+        var list = new List<(PieceData, int)>();
+        if (worldNavigator?.config?.globalPieces == null) return list;
+        foreach (var gp in worldNavigator.config.globalPieces)
         {
-            var list = new List<LevelData.PieceEntry>();
-            foreach (var gp in worldNavigator.config.globalPieces)
-            {
-                if (gp.data == null) continue;
-                list.Add(new LevelData.PieceEntry { data = gp.data, quantity = gp.quantity });
-            }
-            return list;
+            if (gp.data == null) continue;
+            list.Add((gp.data, gp.quantity));
         }
-        return currentLevel.availablePieces;
+        return list;
     }
 
     public void RefreshTrayFromGlobalInventory(Dictionary<PieceData, int> inventory)
@@ -399,6 +396,23 @@ public class GameManager : MonoBehaviour
         {
             if (winPanel) winPanel.SetActive(true);
             onLevelSolved?.Invoke();
+        }
+
+        // Controlla bauli — indipendente dalla vittoria
+        CheckChests();
+    }
+
+    void CheckChests()
+    {
+        if (worldNavigator == null || gridManager == null) return;
+        var source = currentLevel.circuitSource;
+        var openChests = ChestSolver.GetOpenChests(gridManager, source);
+
+        foreach (var pos in openChests)
+        {
+            var cell = gridManager.GetCell(pos);
+            if (cell?.occupant?.data == null) continue;
+            worldNavigator.OnChestOpened(levelIndex, pos, cell.occupant.data);
         }
     }
 

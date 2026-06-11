@@ -39,6 +39,6 @@ public class WorldLevelConfig : ScriptableObject
     [Tooltip("Indice del livello iniziale")]
     public int startLevelIndex = 0;
 
-    [Tooltip("Distanza in pixel tra i nodi della mappa")]
-    public float nodeSpacing = 1200f;
+    [Tooltip("Velocità di scroll del tray (globale per tutti i livelli)")]
+    public float trayScrollSpeed = 200f;
 }

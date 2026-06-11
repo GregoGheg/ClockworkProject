@@ -13,13 +13,9 @@ MonoBehaviour:
   m_Name: Robot
   m_EditorClassIdentifier: Assembly-CSharp::WorldLevelConfig
   levels:
-  - levelData: {fileID: 11400000, guid: f2d692be233473a4a9912b0be0b9a21c, type: 2}
+  - levelData: {fileID: 11400000, guid: cb333454615f08a49acc95e713acb224, type: 2}
     mapPosition: {x: 0, y: 0}
-    displayName: Pettorale Destro
-    nodeColor: {r: 0, g: 0, b: 0, a: 0}
-  - levelData: {fileID: 11400000, guid: 5ff789c6ff530ec4d9d7c7d20163da0d, type: 2}
-    mapPosition: {x: -1, y: 0}
-    displayName: Pettorale Sinistro
+    displayName: 
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   globalPieces:
   - data: {fileID: 11400000, guid: 2970c21d943bfaf4f82cea3188ead14c, type: 2}
@@ -44,7 +40,5 @@ MonoBehaviour:
     quantity: 5
   - data: {fileID: 11400000, guid: db1dd5d01c0349d4d95c4431dce191e9, type: 2}
     quantity: 5
-  - data: {fileID: 11400000, guid: ab78d09834e326c49b43a4d05a8f1457, type: 2}
-    quantity: 5
   startLevelIndex: 0
-  nodeSpacing: 2400
+  trayScrollSpeed: 40000
