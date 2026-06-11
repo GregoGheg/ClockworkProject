@@ -55,9 +55,18 @@ public class CircuitParticleOverlay : MonoBehaviour
 
     void Awake()
     {
-        grid = GetComponentInParent<GridManager>();
+        // Cerca il GridManager nella stessa gerarchia del livello (fratello nel prefab)
+        // Risale fino a trovare un Transform che contenga un GridManager come figlio
+        grid = GetComponentInParent<GridManager>(true);
         if (grid == null)
-            grid = FindFirstObjectByType<GridManager>();
+        {
+            var t = transform.parent;
+            while (t != null && grid == null)
+            {
+                grid = t.GetComponentInChildren<GridManager>(true);
+                t = t.parent;
+            }
+        }
 
         // Forza il RectTransform già in Awake — prima che Unity usi i valori Inspector
         var rt = GetComponent<RectTransform>();
