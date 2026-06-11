@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Robot
   m_EditorClassIdentifier: Assembly-CSharp::WorldLevelConfig
   levels:
-  - levelData: {fileID: 11400000, guid: cb333454615f08a49acc95e713acb224, type: 2}
+  - levelData: {fileID: 11400000, guid: f2d692be233473a4a9912b0be0b9a21c, type: 2}
     mapPosition: {x: 0, y: 0}
     displayName: 
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
