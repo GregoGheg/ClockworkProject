@@ -32,13 +32,15 @@ MonoBehaviour:
     quantity: 2
   - data: {fileID: 11400000, guid: 44f43658013708642948c0ad965f7ca7, type: 2}
     quantity: 20
+  - data: {fileID: 11400000, guid: 89294a06a86ec7246b0b6cf89b2938ca, type: 2}
+    quantity: 5
   - data: {fileID: 11400000, guid: dbaf184babe639e4fbe3236457060344, type: 2}
     quantity: 5
   - data: {fileID: 11400000, guid: d09258a0529439b4dbef85d22cccf366, type: 2}
     quantity: 5
-  - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
-    quantity: 5
   - data: {fileID: 11400000, guid: db1dd5d01c0349d4d95c4431dce191e9, type: 2}
+    quantity: 5
+  - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
     quantity: 5
   startLevelIndex: 0
   trayScrollSpeed: 40000

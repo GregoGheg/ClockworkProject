@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20f2a231c0a91f94b971d9bc1a4c1301, type: 3}
   m_Name: Resistenza
   m_EditorClassIdentifier: Assembly-CSharp::PieceData
-  pieceSprite: {fileID: 21300000, guid: 7b74106440a92d343954d6f307f03dde, type: 3}
+  pieceSprite: {fileID: 21300000, guid: f8b7ed2101a18544d9197987dca1bdd9, type: 3}
   pieceSpriteScale: {x: 1.2, y: 1.2}
   pieceSpriteScaleRotated: {x: 1.2, y: 1.2}
   pieceSpriteOffset: {x: 0, y: 0}
@@ -21,11 +21,23 @@ MonoBehaviour:
     occupiesSpace: 1
     energyChannels:
     - type: 2
-      conductIn: -1
-      conductOut: -1
+      conductIn: 12
+      conductOut: 12
       instability: -5
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
   color: {r: 1, g: 1, b: 1, a: 0}
   trayRowColor: {r: 0.7921569, g: 0.6509804, b: 0, a: 1}
   resizable: 0
+  isPump: 0
+  pumpOutDirection: 0
+  isConverter: 0
+  isGear: 0
+  isLarge: 0
+  isCollector: 0
+  isBelt: 0
+  isChest: 0
+  chestRequiredEnergy: 0
+  chestInputSide: 8
+  chestRewards: []

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20f2a231c0a91f94b971d9bc1a4c1301, type: 3}
   m_Name: Ing. Grande
   m_EditorClassIdentifier: Assembly-CSharp::PieceData
-  pieceSprite: {fileID: 21300000, guid: 23603d2e9defec944a2ae9911be21c01, type: 3}
+  pieceSprite: {fileID: 21300000, guid: 0cd4e8833b1579b49a82633c10ce9bb9, type: 3}
   pieceSpriteScale: {x: 1, y: 1}
   pieceSpriteScaleRotated: {x: 1, y: 1}
   pieceSpriteOffset: {x: 0, y: 0}
@@ -26,6 +26,7 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
   - localCoord: {x: 0, y: 1}
     occupiesSpace: 1
     energyChannels:
@@ -35,6 +36,7 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
   - localCoord: {x: 1, y: 0}
     occupiesSpace: 1
     energyChannels:
@@ -44,6 +46,7 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
   - localCoord: {x: 1, y: 1}
     occupiesSpace: 1
     energyChannels:
@@ -53,13 +56,18 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
   color: {r: 1, g: 1, b: 1, a: 0}
   trayRowColor: {r: 0.71300006, g: 0.22418793, b: 0, a: 1}
   resizable: 0
   isPump: 0
+  pumpOutDirection: 0
   isConverter: 0
   isGear: 1
   isLarge: 1
   isCollector: 0
   isBelt: 0
-  pumpOutDirection: 0
+  isChest: 0
+  chestRequiredEnergy: 0
+  chestInputSide: 8
+  chestRewards: []

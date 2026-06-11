@@ -6,7 +6,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CanvasGroup))]
 public class PieceDragger : MonoBehaviour,
     IBeginDragHandler, IDragHandler, IEndDragHandler,
-    IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
+    IPointerClickHandler, IPointerDownHandler, IPointerUpHandler,
+    IPointerEnterHandler
 {
     [HideInInspector] public Piece piece;
     [HideInInspector] public GridManager grid;
@@ -19,6 +20,12 @@ public class PieceDragger : MonoBehaviour,
     Transform originalParent;
 
     static PieceDragger selected;
+    static PieceDragger lastInteracted;      // ultimo pezzo con cui l'utente ha interagito
+    static PieceDragger lastClickedPiece;    // pezzo dell'ultimo click sinistro
+    static float lastLeftClickTime = -1f;
+    const float doubleClickThreshold = 0.3f;
+    bool isDragging = false;       // true se OnBeginDrag è scattato
+    bool pendingDoubleClick = false; // doppio click rilevato al PointerDown
     public bool IsSelected() => selected == this;
 
     public System.Action onReturnedToTray;
@@ -94,21 +101,39 @@ public class PieceDragger : MonoBehaviour,
     // ── Pointer events ────────────────────────────────────────────────────
     public void OnPointerClick(PointerEventData e)
     {
-        UnityEngine.Debug.Log($"[OnPointerClick] button={e.button} gridPos={piece.gridPosition}");
+        UnityEngine.Debug.Log($"[Click] button={e.button}");
         if (e.button == PointerEventData.InputButton.Left)
+        {
             Select();
+            lastInteracted = this;
+        }
         else if (e.button == PointerEventData.InputButton.Middle)
         {
-            // Usa solo il dragger che è effettivamente il "proprietario" del pezzo
-            // (quello la cui gridPosition coincide con la gridPosition del pezzo)
-            // così i PieceDragger delle altre celle non interferiscono
-            if (piece.gridPosition.x >= 0 && piece.gridPosition == piece.gridPosition)
-                ReturnToTray();
+            ReturnToTray();
         }
+    }
+
+    // Tasto centrale tenuto premuto: elimina ogni pezzo su cui passa il mouse
+    public void OnPointerEnter(PointerEventData e)
+    {
+        if (piece.gridPosition.x < 0) return;
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+        if (mouse.middleButton.isPressed)
+            ReturnToTray();
     }
 
     public void OnPointerDown(PointerEventData e)
     {
+        if (e.button == PointerEventData.InputButton.Left)
+        {
+            isDragging = false;
+            lastInteracted = this;
+            // Aggiorna il timer per lastInteracted — usato da GridCell.TryPlaceLastSelected
+            lastLeftClickTime = Time.unscaledTime;
+            lastClickedPiece = this;
+            pendingDoubleClick = false; // il doppio click è gestito da GridCell sulle celle vuote
+        }
         if (e.button != PointerEventData.InputButton.Right) return;
         var resizer = GetComponentInChildren<SpringResizer>();
         if (resizer == null || !IsSelected() || piece.gridPosition.x < 0) return;
@@ -132,6 +157,11 @@ public class PieceDragger : MonoBehaviour,
 
     public void OnPointerUp(PointerEventData e)
     {
+        if (e.button == PointerEventData.InputButton.Left)
+        {
+            pendingDoubleClick = false;
+            isDragging = false;
+        }
         if (e.button != PointerEventData.InputButton.Right) return;
         isResizing = false;
     }
@@ -140,6 +170,8 @@ public class PieceDragger : MonoBehaviour,
     {
         if (selected != null && selected != this) selected.Deselect();
         selected = this;
+        lastInteracted = this;
+        UnityEngine.Debug.Log($"[Select] lastInteracted={lastInteracted.piece?.data?.name} pos={lastInteracted.piece?.gridPosition}");
         SetHandlesVisible(true);
     }
 
@@ -150,6 +182,74 @@ public class PieceDragger : MonoBehaviour,
 
     public static void ClearSelection() => selected = null;
 
+    /// <summary>
+    /// Chiamato da GridCell su doppio click: piazza una nuova istanza
+    /// dell'ultimo pezzo con cui l'utente ha interagito, se disponibile nel tray.
+    /// </summary>
+    void TryPlaceNextToThis()
+    {
+        var dirs = new[] { Vector2Int.right, Vector2Int.up, Vector2Int.left, Vector2Int.down };
+        foreach (var dir in dirs)
+        {
+            var candidate = piece.gridPosition + dir;
+            if (!grid.CanPlace(piece, candidate)) continue;
+            TryPlaceLastSelected(grid, candidate);
+            return;
+        }
+    }
+
+    void TryPlaceOnFirstFreeCell()
+    {
+        for (int y = 0; y < grid.Height; y++)
+            for (int x = 0; x < grid.Width; x++)
+            {
+                var coord = new Vector2Int(x, y);
+                if (grid.CanPlace(piece, coord))
+                {
+                    TryPlaceLastSelected(grid, coord);
+                    return;
+                }
+            }
+    }
+
+    public static void TryPlaceLastSelected(GridManager grid, Vector2Int coord)
+    {
+        if (lastInteracted == null) return;
+        var data = lastInteracted.piece.data;
+
+        // Trova un dragger dello stesso tipo disponibile nel tray
+        var allDraggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
+            UnityEngine.FindObjectsSortMode.None);
+        PieceDragger available = null;
+        foreach (var d in allDraggers)
+        {
+            if (d.piece.data == data && d.piece.gridPosition.x < 0
+                && d.gameObject.activeInHierarchy)
+            { available = d; break; }
+        }
+        if (available == null) return;
+
+        // Copia la rotazione dell'ultimo pezzo interagito
+        available.piece.rotation = lastInteracted.piece.rotation;
+        available.RedrawVisual();
+
+        if (!grid.TryPlace(available.piece, coord)) return;
+
+        // Sposta il dragger sulla griglia e rendilo visibile
+        var slot = available.originalParent?.GetComponent<TraySlot>()
+                ?? available.originalParent?.GetComponentInParent<TraySlot>();
+        slot?.HideDuringDrag(available); // aggiorna contatore tray
+
+        available.transform.SetParent(grid.transform, false);
+        available.gameObject.SetActive(true);
+        available.canvasGroup.alpha = 1f;
+        available.canvasGroup.blocksRaycasts = true;
+        available.canvasGroup.interactable = true;
+        available.SetPlacedPosition(coord, grid);
+        lastInteracted = available;
+        grid.OnGridChanged?.Invoke();
+    }
+
     void SetHandlesVisible(bool v)
     {
         GetComponentInChildren<SpringResizer>()?.SetHandlesVisible(v);
@@ -158,8 +258,10 @@ public class PieceDragger : MonoBehaviour,
     // ── Drag ──────────────────────────────────────────────────────────────
     public void OnBeginDrag(PointerEventData e)
     {
-
         if (e.button != PointerEventData.InputButton.Left) return;
+
+        // Segna che il drag è iniziato — usato da OnPointerUp per escludere il doppio click
+        isDragging = true;
 
         Select();
         SetHandlesVisible(false);
@@ -468,38 +570,39 @@ public class PieceDragger : MonoBehaviour,
     {
         if (piece.gridPosition.x < 0) return;
 
-        // 1. Nascondi tutti i dragger extra dello stesso pezzo (celle secondarie)
+        // Nascondi tutte le celle secondarie dello stesso pezzo
         var allDraggers = grid.GetComponentsInChildren<PieceDragger>(true);
         foreach (var d in allDraggers)
             if (d.piece == piece && d != this)
                 d.gameObject.SetActive(false);
 
-        // 2. Rimuovi dalla griglia
-        var localGM = LocalGameManager;
-        localGM?.SaveSnapshot();
+        // Rimuovi dalla griglia logica
         grid.Remove(piece);
 
-        // 3. Trova il TraySlot di appartenenza risalendo l'originalParent,
-        //    oppure cercandolo nel GameManager — senza dipendere dal singleton
+        // Trova il TraySlot: prima da originalParent, poi cerca nella scena
         TraySlot targetSlot = originalParent?.GetComponent<TraySlot>()
                            ?? originalParent?.GetComponentInParent<TraySlot>();
 
-        if (targetSlot == null && localGM != null)
-            localGM.ReturnDraggerToTray(this);
-        else if (targetSlot != null)
-            targetSlot.ReturnFromDrag(this);
-        else
+        if (targetSlot == null)
         {
-            // Fallback: cerca un TraySlot nella scena che contenga questo dragger
             foreach (var slot in UnityEngine.Object.FindObjectsByType<TraySlot>(
                 UnityEngine.FindObjectsSortMode.None))
             {
                 if (slot.GetDraggers().Contains(this))
                 {
-                    slot.ReturnFromDrag(this);
+                    targetSlot = slot;
                     break;
                 }
             }
+        }
+
+        if (targetSlot != null)
+            targetSlot.ReturnFromDrag(this);
+        else
+        {
+            // Fallback estremo: torna al parent originale e reimposta posizione
+            transform.SetParent(originalParent, false);
+            piece.gridPosition = new Vector2Int(-1, -1);
         }
 
         Deselect();
@@ -597,6 +700,27 @@ public class PieceDragger : MonoBehaviour,
         rectTransform.anchoredPosition = new Vector2(
             (gc.x + pMinX) * grid.cellSize,
             (gc.y + pMinY) * grid.cellSize);
+    }
+
+    /// <summary>Imposta la posizione visiva del dragger dopo un piazzamento programmatico.</summary>
+    public void SetPlacedPosition(Vector2Int coord, GridManager g)
+    {
+        // Calcola offset della cella minima del pezzo (come in SnapVisualToGrid)
+        int pMinX = int.MaxValue, pMinY = int.MaxValue;
+        foreach (var cell in piece.CurrentCells())
+        {
+            if (!cell.occupiesSpace) continue;
+            if (cell.localCoord.x < pMinX) pMinX = cell.localCoord.x;
+            if (cell.localCoord.y < pMinY) pMinY = cell.localCoord.y;
+        }
+        if (pMinX == int.MaxValue) { pMinX = 0; pMinY = 0; }
+
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.zero;
+        rectTransform.pivot = Vector2.zero;
+        rectTransform.anchoredPosition = new Vector2(
+            (coord.x + pMinX) * g.cellSize,
+            (coord.y + pMinY) * g.cellSize);
     }
 
     void AttachResizer()

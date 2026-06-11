@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20f2a231c0a91f94b971d9bc1a4c1301, type: 3}
   m_Name: Ingranaggio
   m_EditorClassIdentifier: Assembly-CSharp::PieceData
-  pieceSprite: {fileID: 21300000, guid: 192629e8d0908eb40a87843ae2e2fc1a, type: 3}
+  pieceSprite: {fileID: 21300000, guid: db2d069d66a8cc64cb6eb54ab4a8723c, type: 3}
   pieceSpriteScale: {x: 1, y: 1}
   pieceSpriteScaleRotated: {x: 1, y: 1}
   pieceSpriteOffset: {x: 0, y: 0}
@@ -37,3 +37,7 @@ MonoBehaviour:
   isLarge: 0
   isCollector: 0
   isBelt: 0
+  isChest: 0
+  chestRequiredEnergy: 0
+  chestInputSide: 8
+  chestRewards: []

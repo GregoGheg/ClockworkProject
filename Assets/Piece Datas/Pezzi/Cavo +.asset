@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20f2a231c0a91f94b971d9bc1a4c1301, type: 3}
-  m_Name: Cinghia
+  m_Name: Cavo +
   m_EditorClassIdentifier: Assembly-CSharp::PieceData
-  pieceSprite: {fileID: 21300000, guid: 685e2bd3752c90040bbcbf21dafcb3d6, type: 3}
+  pieceSprite: {fileID: 21300000, guid: 7751cdc4ae5981a41b201e70accbf721, type: 3}
   pieceSpriteScale: {x: 1, y: 1}
   pieceSpriteScaleRotated: {x: 1, y: 1}
   pieceSpriteOffset: {x: 0, y: 0}
   cells:
   - localCoord: {x: 0, y: 0}
-    occupiesSpace: 0
+    occupiesSpace: 1
     energyChannels:
-    - type: 0
+    - type: 2
       conductIn: -1
       conductOut: -1
-      instability: 0
+      instability: 1
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
     isPumpCell: 0
-  color: {r: 1, g: 1, b: 1, a: 1}
-  trayRowColor: {r: 0, g: 0, b: 0, a: 0}
+  color: {r: 1, g: 1, b: 1, a: 0}
+  trayRowColor: {r: 0.7921569, g: 0.6509804, b: 0, a: 1}
   resizable: 0
   isPump: 0
   pumpOutDirection: 0
@@ -36,4 +36,8 @@ MonoBehaviour:
   isGear: 0
   isLarge: 0
   isCollector: 0
-  isBelt: 1
+  isBelt: 0
+  isChest: 0
+  chestRequiredEnergy: 0
+  chestInputSide: 8
+  chestRewards: []

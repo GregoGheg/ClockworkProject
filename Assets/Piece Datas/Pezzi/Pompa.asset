@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20f2a231c0a91f94b971d9bc1a4c1301, type: 3}
   m_Name: Pompa
   m_EditorClassIdentifier: Assembly-CSharp::PieceData
-  pieceSprite: {fileID: 21300000, guid: a636562e4b600f241b0136f048cd4c89, type: 3}
-  pieceSpriteScale: {x: 1.2, y: 1.15}
-  pieceSpriteScaleRotated: {x: 1.2, y: 1.15}
+  pieceSprite: {fileID: 21300000, guid: 35cfa295ef6e9a9468c5189a95fe63a9, type: 3}
+  pieceSpriteScale: {x: 1, y: 1}
+  pieceSpriteScaleRotated: {x: 1, y: 1}
   pieceSpriteOffset: {x: 0, y: 0}
   cells:
   - localCoord: {x: 0, y: 0}
@@ -67,3 +67,7 @@ MonoBehaviour:
   isLarge: 0
   isCollector: 0
   isBelt: 0
+  isChest: 0
+  chestRequiredEnergy: 0
+  chestInputSide: 8
+  chestRewards: []

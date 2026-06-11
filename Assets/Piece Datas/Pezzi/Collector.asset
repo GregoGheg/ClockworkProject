@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20f2a231c0a91f94b971d9bc1a4c1301, type: 3}
   m_Name: Collector
   m_EditorClassIdentifier: Assembly-CSharp::PieceData
-  pieceSprite: {fileID: 21300000, guid: f93101c32f0bd8c4baf22d0bfe002914, type: 3}
+  pieceSprite: {fileID: 21300000, guid: 56a614bd06eae1144a488debfc4800ea, type: 3}
   pieceSpriteScale: {x: 1, y: 1}
   pieceSpriteScaleRotated: {x: 1, y: 1}
   pieceSpriteOffset: {x: 0, y: 0}
@@ -26,13 +26,18 @@ MonoBehaviour:
       instability: 0
     overrideSprite: {fileID: 0}
     nonPhysicalSprite: {fileID: 0}
-  color: {r: 1, g: 1, b: 1, a: 1}
-  trayRowColor: {r: 0, g: 0, b: 0, a: 0}
+    isPumpCell: 0
+  color: {r: 1, g: 1, b: 1, a: 0}
+  trayRowColor: {r: 0.7921569, g: 0.6509804, b: 0, a: 1}
   resizable: 0
   isPump: 0
+  pumpOutDirection: 0
   isConverter: 0
   isGear: 0
   isLarge: 0
   isCollector: 1
   isBelt: 0
-  pumpOutDirection: 0
+  isChest: 0
+  chestRequiredEnergy: 0
+  chestInputSide: 8
+  chestRewards: []

@@ -1,9 +1,29 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Image))]
-public class GridCell : MonoBehaviour
+public class GridCell : MonoBehaviour, IPointerClickHandler
 {
+    float lastClickTime = -1f;
+    const float doubleClickThreshold = 0.3f;
+
+    public void OnPointerClick(PointerEventData e)
+    {
+        if (e.button != PointerEventData.InputButton.Left) return;
+
+        float now = Time.unscaledTime;
+        bool isDouble = (now - lastClickTime) < doubleClickThreshold;
+        UnityEngine.Debug.Log($"[GridCell] click coord={coord} isDouble={isDouble} diff={now - lastClickTime:F3} occupant={grid?.GetCell(coord)?.occupant?.data?.name ?? "null"}");
+        lastClickTime = now;
+
+        if (!isDouble) return;
+        if (grid == null || !active) return;
+        if (grid.GetCell(coord)?.occupant != null) return;
+
+        PieceDragger.TryPlaceLastSelected(grid, coord);
+    }
+
     [Header("Colori")]
     public Color emptyColor = new Color(0.15f, 0.15f, 0.2f, 1f);
     public Color inactiveColor = new Color(0f, 0f, 0f, 0f);        // trasparente
@@ -41,7 +61,7 @@ public class GridCell : MonoBehaviour
 
         // Layer 1: background
         bg = GetComponent<Image>();
-        bg.raycastTarget = false;
+        bg.raycastTarget = isActive; // le celle attive ricevono click
         bg.color = isActive ? emptyColor : inactiveColor;
 
         // Layer 2: sprite del componente
