@@ -144,15 +144,25 @@ public class PieceDragger : MonoBehaviour,
         resizeLenStart = piece.runtimeLength ?? piece.data.cells.Count;
         resizeLastLen = resizeLenStart;
 
-        bool iv2 = piece.rotation % 2 == 1;
-        var ax = iv2 ? Vector2Int.up : Vector2Int.right;
+        // Calcola la direzione reale delle celle secondo RotateCoord
+        // rot=0: (i,0)   rot=1: (0,-i)   rot=2: (-i,0)   rot=3: (0,i)
+        var cellDir = piece.rotation switch
+        {
+            1 => new Vector2Int(0, -1),
+            2 => new Vector2Int(-1, 0),
+            3 => new Vector2Int(0, 1),
+            _ => new Vector2Int(1, 0)
+        };
         var orig = piece.gridPosition;
-        var head = orig + ax * (resizeLenStart - 1);
+        // La tail è la cella i=(len-1): gridPos + cellDir*(len-1)
+        var tail = orig + cellDir * (resizeLenStart - 1);
         var gc = grid.ScreenToGridCoord(e.position, null);
         float dO = Vector2Int.Distance(gc, orig);
-        float dH = Vector2Int.Distance(gc, head);
-        resizingFromTail = dO < dH;
-        resizeHeadPos = resizingFromTail ? head : orig;
+        float dT = Vector2Int.Distance(gc, tail);
+        // resizingFromTail=true → l'utente trascina la coda, la testa è orig
+        // resizingFromTail=false → l'utente trascina la testa, la coda cresce dall'altra parte
+        resizingFromTail = dT < dO;
+        resizeHeadPos = resizingFromTail ? orig : tail;
     }
 
     public void OnPointerUp(PointerEventData e)
@@ -171,6 +181,7 @@ public class PieceDragger : MonoBehaviour,
         if (selected != null && selected != this) selected.Deselect();
         selected = this;
         lastInteracted = this;
+        LastSelectedDisplay.SetSprite(piece?.data?.pieceSprite);
         UnityEngine.Debug.Log($"[Select] lastInteracted={lastInteracted.piece?.data?.name} pos={lastInteracted.piece?.gridPosition}");
         SetHandlesVisible(true);
     }
@@ -305,17 +316,18 @@ public class PieceDragger : MonoBehaviour,
                 : 1f;
             float pixPerCell = grid.cellSize * scale;
 
-            float eff = resizingFromTail ? -delta : delta;
+            bool invertDir = piece.rotation == 1 || piece.rotation == 2;
+            float eff = resizingFromTail
+                ? (invertDir ? -delta : delta)
+                : (invertDir ? delta : -delta);
             int dc = Mathf.RoundToInt(eff / pixPerCell);
             int newLen = Mathf.Clamp(resizeLenStart + dc, 2, 4);
             if (newLen != resizeLastLen)
             {
-                bool iv3 = piece.rotation % 2 == 1;
-                var ax3 = iv3 ? Vector2Int.up : Vector2Int.right;
-                Vector2Int no = resizingFromTail
-                    ? resizeHeadPos - ax3 * (newLen - 1)
-                    : piece.gridPosition;
-                resizer.TryResizePublicFrom(newLen, no);
+                if (resizingFromTail)
+                    resizer.TryResizePublicFrom(newLen, resizeHeadPos);
+                else
+                    resizer.TryResizePublicFromTail(newLen, resizeHeadPos);
                 resizeLastLen = newLen;
             }
             return;
@@ -825,15 +837,14 @@ public class PieceDragger : MonoBehaviour,
             bool isRotated = piece.rotation == 1 || piece.rotation == 3;
             Vector2 rawScale = isRotated ? piece.data.pieceSpriteScaleRotated : piece.data.pieceSpriteScale;
 
+            // Con rotazione CSS di -90/90°, W e H si scambiano visivamente.
+            // Per ottenere le dimensioni corrette post-rotazione, scambiamo physW/physH
+            // quando lo sprite è ruotato, così dopo la rotazione CSS tornano corretti.
             float spriteW, spriteH;
-            if (isRotated && piece.data.resizable)
+            if (isRotated)
             {
-                int len = piece.runtimeLength ?? piece.data.cells.Count;
-                float t = (len - 2) / 2f;
-                float scaleX = Mathf.Lerp(2.27f, 4.80f, t);
-                float scaleY = Mathf.Lerp(2.15f, 1.18f, t);
-                spriteW = physW * size * scaleX;
-                spriteH = physH * size * scaleY;
+                spriteW = physH * size * rawScale.x;
+                spriteH = physW * size * rawScale.y;
             }
             else
             {
