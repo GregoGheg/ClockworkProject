@@ -23,27 +23,19 @@ public class GridManager : MonoBehaviour
     public int Height => level.gridHeight;
 
     public System.Action OnGridChanged;
+    /// <summary>Invocato quando un pezzo viene droppato su una cella occupata. Parametri: pezzo droppato, cella target, posizione precedente del pezzo.</summary>
+    public System.Action<Piece, Vector2Int, Vector2Int> OnDropOnOccupied;
+    /// <summary>Registra la posizione di un pezzo prima che venga rimosso per il drag.</summary>
+    readonly System.Collections.Generic.Dictionary<Piece, Vector2Int> _preDragPos = new();
+    readonly System.Collections.Generic.HashSet<Piece> _swapHandled = new();
+    public void RegisterPreDragPosition(Piece piece, Vector2Int pos) => _preDragPos[piece] = pos;
+    public Vector2Int GetPreDragPosition(Piece piece) => _preDragPos.TryGetValue(piece, out var p) ? p : new Vector2Int(-1, -1);
 
     readonly List<Piece> placedPieces = new();
     public IReadOnlyList<Piece> PlacedPieces => placedPieces;
 
-    bool initialized = false;
-
     void Awake()
     {
-        if (level != null) BuildGrid();
-    }
-
-    void Start()
-    {
-        // Fallback per uso standalone in Editor
-        if (!initialized && level != null) BuildGrid();
-    }
-
-    void BuildGrid()
-    {
-        if (initialized) return;
-        initialized = true;
         var rt = GetComponent<RectTransform>();
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.zero;
@@ -99,9 +91,7 @@ public class GridManager : MonoBehaviour
         foreach (var cell in test.WorldCells())
         {
             var coord = cell.localCoord;
-            // Le celle non-fisiche possono andare ovunque — fuori bounds, sopra altri pezzi
             if (!cell.occupiesSpace) continue;
-            // Le celle fisiche devono stare in bounds su una cella libera e attiva
             if (!IsFree(coord.x, coord.y)) return false;
         }
         return true;
@@ -109,7 +99,27 @@ public class GridManager : MonoBehaviour
 
     public bool TryPlace(Piece piece, Vector2Int at)
     {
-        if (!CanPlace(piece, at)) return false;
+        // Se il pezzo è già piazzato qui (dallo swap), simula successo
+        if (piece.gridPosition == at && GetCell(at)?.occupant == piece)
+            return true;
+        if (!CanPlace(piece, at))
+        {
+            // Notifica se la cella è occupata (per lo swap)
+            var cell = GetCell(at);
+            if (cell?.occupant != null && cell.occupant != piece)
+            {
+                // Usa la posizione pre-drag se disponibile (più accurata)
+                var prevPos = _preDragPos.TryGetValue(piece, out var p) ? p : piece.gridPosition;
+                // Invoca solo se non già gestito (evita doppio trigger dal fallback di PieceDragger)
+                if (!_swapHandled.Contains(piece))
+                {
+                    _swapHandled.Add(piece);
+                    OnDropOnOccupied?.Invoke(piece, at, prevPos);
+
+                }
+            }
+            return false;
+        }
         piece.gridPosition = at;
 
         foreach (var cell in piece.WorldCells())
@@ -131,6 +141,7 @@ public class GridManager : MonoBehaviour
         }
 
         if (!placedPieces.Contains(piece)) placedPieces.Add(piece);
+        _swapHandled.Remove(piece); // reset flag swap
         OnGridChanged?.Invoke();
         return true;
     }
@@ -138,6 +149,8 @@ public class GridManager : MonoBehaviour
     public void Remove(Piece piece)
     {
         if (piece.gridPosition.x < 0) return;
+        // Salva posizione pre-rimozione per lo swap
+        _preDragPos[piece] = piece.gridPosition;
 
         foreach (var cell in piece.WorldCells())
         {

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-
 public static class CircuitSolver
 {
     public static HashSet<Vector2Int> GetReachedCells(GridManager grid, Vector2Int source)
@@ -21,7 +20,6 @@ public static class CircuitSolver
             result.UnionWith(HydraulicSolver.GetReachedCells(map, source, grid.Width, grid.Height, grid));
         return result;
     }
-
     public static Dictionary<Vector2Int, HydraulicSolver.FlowCell> GetHydraulicFlowMap(
         GridManager grid, Vector2Int source)
     {
@@ -30,7 +28,6 @@ public static class CircuitSolver
         var map = BuildConductMap(grid);
         return HydraulicSolver.GetFlowMap(map, source, grid.Width, grid.Height, grid);
     }
-
     public static HashSet<Vector2Int> GetReachedCells(
         GridManager grid, Vector2Int source, EnergyType type)
     {
@@ -50,7 +47,6 @@ public static class CircuitSolver
             _ => new HashSet<Vector2Int>()
         };
     }
-
     public static Dictionary<Vector2Int, float> GetElectricInstability(GridManager grid, Vector2Int source)
     {
         if (!grid.level.SourceEmits(EnergyType.Electric))
@@ -58,7 +54,6 @@ public static class CircuitSolver
         var map = BuildConductMap(grid);
         return ElectricSolver.GetReachedWithInstability(map, source);
     }
-
     public static bool Solve(GridManager grid, Vector2Int source, Vector2Int dest)
     {
         foreach (var type in new[] { EnergyType.Mechanical, EnergyType.Electric, EnergyType.Hydraulic })
@@ -73,14 +68,11 @@ public static class CircuitSolver
         {
             if (gFlow[dest] == EnergyType.Electric)
             {
-                // Verifica instabilità reale — deve essere < 10
                 var gElecInstab = GetGenericElecInstability(grid, source);
                 if (gElecInstab.ContainsKey(dest) && gElecInstab[dest] < 10f) return true;
-                // Non raggiunto da GetGenericElecInstability = oltre soglia = false
             }
             else return true;
         }
-
         // Collettori elettrici
         if (grid.level.DestAccepts(EnergyType.Electric))
         {
@@ -89,13 +81,11 @@ public static class CircuitSolver
         }
         return false;
     }
-
     public static List<(Vector2Int from, Vector2Int to)> GetEnergyLinks(
         GridManager grid, Vector2Int source, EnergyType type)
     {
         var map = BuildConductMap(grid);
         var links = new List<(Vector2Int, Vector2Int)>();
-
         var dirs = new (Vector2Int dir, PieceData.ConnectionSides outS, PieceData.ConnectionSides inS)[]
         {
             (Vector2Int.right, PieceData.ConnectionSides.Right, PieceData.ConnectionSides.Left),
@@ -103,12 +93,10 @@ public static class CircuitSolver
             (Vector2Int.up,    PieceData.ConnectionSides.Up,    PieceData.ConnectionSides.Down),
             (Vector2Int.down,  PieceData.ConnectionSides.Down,  PieceData.ConnectionSides.Up),
         };
-
         if (type == EnergyType.Hydraulic)
         {
             var flow = HydraulicSolver.GetFlowMap(map, source, grid.Width, grid.Height, grid);
             var reached = new HashSet<Vector2Int>(flow.Keys);
-
             foreach (var cell in reached)
             {
                 if (!map.TryGetValue(cell, out var curCh)) continue;
@@ -123,7 +111,6 @@ public static class CircuitSolver
                         links.Add((cell, next));
                 }
             }
-
             foreach (var kv in flow)
             {
                 if (!kv.Value.isCascade) continue;
@@ -131,7 +118,6 @@ public static class CircuitSolver
                 if (!flow.ContainsKey(above)) continue;
                 links.Add((above, kv.Key));
             }
-
             foreach (var kv in flow)
             {
                 var coord = kv.Key;
@@ -147,10 +133,8 @@ public static class CircuitSolver
                     links.Add((coord, lateralPos));
                 }
             }
-
             return links;
         }
-
         HashSet<Vector2Int> simpleReached;
         if (type == EnergyType.Mechanical)
         {
@@ -166,7 +150,6 @@ public static class CircuitSolver
                 _ => new HashSet<Vector2Int>()
             };
         }
-
         foreach (var cell in simpleReached)
         {
             if (!map.TryGetValue(cell, out var curCh)) continue;
@@ -181,10 +164,8 @@ public static class CircuitSolver
                     links.Add((cell, next));
             }
         }
-
         return links;
     }
-
     public static HashSet<Vector2Int> BuildConverterCells(GridManager grid)
     {
         var cells = new HashSet<Vector2Int>();
@@ -198,16 +179,6 @@ public static class CircuitSolver
         }
         return cells;
     }
-
-    /// <summary>
-    /// Restituisce le celle raggiunte tramite convertitori con il tipo adottato.
-    /// Le celle di "ingresso" nei solver specifici sono i punti dopo il convertitore.
-    /// </summary>
-    /// <summary>Flusso elettrico creato dai collettori.</summary>
-    /// <summary>
-    /// Restituisce l'instabilità reale delle celle elettriche raggiunte via convertitore.
-    /// Queste celle non sono in GetElectricInstability perché partono da seed diverse.
-    /// </summary>
     public static Dictionary<Vector2Int, float> GetGenericElecInstability(
         GridManager grid, Vector2Int source)
     {
@@ -215,7 +186,6 @@ public static class CircuitSolver
         var map = BuildConductMap(grid);
         var converters = BuildConverterCells(grid);
         if (converters.Count == 0) return result;
-
         var allReached = new HashSet<Vector2Int>();
         if (grid.level.SourceEmits(EnergyType.Mechanical))
             allReached.UnionWith(MechanicalSolver.GetReachedCells(map, source));
@@ -224,25 +194,18 @@ public static class CircuitSolver
         if (grid.level.SourceEmits(EnergyType.Hydraulic))
             allReached.UnionWith(HydraulicSolver.GetReachedCells(map, source,
                 grid.Width, grid.Height, grid));
-
         var genericResult = GenericSolver.GetReachedFromConverters(map, allReached, converters);
-
-        // Trova tutte le celle elettriche reali adiacenti alle celle generiche dopo il convertitore
         var electricSeeds = new HashSet<Vector2Int>();
         foreach (var kv in genericResult)
         {
             if (kv.Value != EnergyType.Electric) continue;
             var seed = kv.Key;
-
-            // La seed stessa potrebbe essere elettrica
             if (map.ContainsKey(seed))
             {
                 bool hasElec = false;
                 foreach (var ch in map[seed]) if (ch.type == EnergyType.Electric) { hasElec = true; break; }
                 if (hasElec) { electricSeeds.Add(seed); continue; }
             }
-
-            // Cerca celle adiacenti con canali elettrici
             foreach (var dir in new[] { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down })
             {
                 var nb = seed + dir;
@@ -252,9 +215,6 @@ public static class CircuitSolver
                 if (hasElec) electricSeeds.Add(nb);
             }
         }
-
-        // Usa solo la prima seed elettrica trovata — una sola propagazione Dijkstra
-        // Usarne più di una causa partenze multiple da instab=0 che si sovrappongono
         if (electricSeeds.Count > 0)
         {
             var firstSeed = new List<Vector2Int>(electricSeeds)[0];
@@ -263,10 +223,8 @@ public static class CircuitSolver
                 if (ekv.Value < 10f)
                     result[ekv.Key] = ekv.Value;
         }
-
         return result;
     }
-
     public static Dictionary<Vector2Int, float> GetCollectorFlow(
         GridManager grid, Vector2Int source)
     {
@@ -274,18 +232,45 @@ public static class CircuitSolver
         var collectors = CollectorSolver.BuildCollectorCells(grid);
         if (collectors.Count == 0) return new Dictionary<Vector2Int, float>();
 
-        // Usa l'instabilità già calcolata come riferimento
-        var existingInstab = ElectricSolver.GetReachedWithInstability(map, source);
-        return CollectorSolver.GetCollectorFlow(map, existingInstab, collectors, grid);
-    }
+        // Instabilità base dalla source originale
+        var baseInstab = ElectricSolver.GetReachedWithInstability(map, source);
 
+        // Dizionario cumulativo — parte con l'instabilità base
+        var cumInstab = new System.Collections.Generic.Dictionary<Vector2Int, float>(baseInstab);
+        var result = new System.Collections.Generic.Dictionary<Vector2Int, float>();
+
+        // Loop finché ci sono nuove celle da aggiungere (max iterazioni = numero collector)
+        int maxIterations = collectors.Count + 1;
+        for (int i = 0; i < maxIterations; i++)
+        {
+            var flow = CollectorSolver.GetCollectorFlow(map, cumInstab, collectors, grid);
+            var propagated = CollectorPropagator.PropagateFromCollector(map, flow, grid);
+
+            bool anyNew = false;
+            foreach (var kv in propagated)
+            {
+                if (!result.ContainsKey(kv.Key))
+                {
+                    result[kv.Key] = kv.Value;
+                    anyNew = true;
+                }
+                // Aggiorna instabilità cumulativa con il valore migliore
+                if (!cumInstab.ContainsKey(kv.Key) || kv.Value < cumInstab[kv.Key])
+                    cumInstab[kv.Key] = kv.Value;
+            }
+
+            // Se non ci sono nuove celle, la catena è completa
+            if (!anyNew) break;
+        }
+
+        return result;
+    }
     public static Dictionary<Vector2Int, EnergyType> GetGenericFlow(
         GridManager grid, Vector2Int source)
     {
         var map = BuildConductMap(grid);
         var converters = BuildConverterCells(grid);
         if (converters.Count == 0) return new Dictionary<Vector2Int, EnergyType>();
-
         var pumps = BuildPumpCells(grid);
         var allReached = new HashSet<Vector2Int>();
         if (grid.level.SourceEmits(EnergyType.Mechanical))
@@ -295,38 +280,24 @@ public static class CircuitSolver
         if (grid.level.SourceEmits(EnergyType.Hydraulic))
             allReached.UnionWith(HydraulicSolver.GetReachedCells(map, source,
                 grid.Width, grid.Height, grid));
-
-        // Trova le celle raggiunte tramite convertitori e il loro tipo adottato
         var genericResult = GenericSolver.GetReachedFromConverters(map, allReached, converters);
         if (genericResult.Count == 0) return genericResult;
-
-        // Per ogni tipo adottato, rilancia il solver specifico dalla cella di entrata
-        // così instabilità elettrica, cascata idrica ecc. funzionano correttamente
         var expanded = new Dictionary<Vector2Int, EnergyType>(genericResult);
-
-        // Raggruppa le celle per tipo adottato
         var byType = new Dictionary<EnergyType, HashSet<Vector2Int>>();
         foreach (var kv in genericResult)
         {
             if (!byType.ContainsKey(kv.Value)) byType[kv.Value] = new HashSet<Vector2Int>();
             byType[kv.Value].Add(kv.Key);
         }
-
-        // Per ogni tipo, trova la prima cella non-convertitore come sorgente
-        // e rilancia il solver da lì
         foreach (var kv in byType)
         {
             var type = kv.Key;
             var seedCells = kv.Value;
-
-            // Cerca la cella più vicina al convertitore (non-convertitore)
             foreach (var seed in seedCells)
             {
                 if (converters.Contains(seed)) continue;
-
                 if (type == EnergyType.Electric)
                 {
-
                     if (map.ContainsKey(seed))
                     {
                         var elecFromSeed = ElectricSolver.GetReachedWithInstability(map, seed);
@@ -373,10 +344,8 @@ public static class CircuitSolver
                 }
             }
         }
-
         return expanded;
     }
-
     public static HashSet<Vector2Int> BuildPumpCells(GridManager grid)
     {
         var pumps = new HashSet<Vector2Int>();
@@ -390,7 +359,6 @@ public static class CircuitSolver
         }
         return pumps;
     }
-
     public static Dictionary<Vector2Int, List<PieceData.EnergyChannel>> BuildConductMap(GridManager grid)
     {
         var map = new Dictionary<Vector2Int, List<PieceData.EnergyChannel>>();
@@ -411,7 +379,6 @@ public static class CircuitSolver
         }
         return map;
     }
-
     static bool HasSide(List<PieceData.EnergyChannel> ch, EnergyType type,
                         PieceData.ConnectionSides side, bool isOut)
     {

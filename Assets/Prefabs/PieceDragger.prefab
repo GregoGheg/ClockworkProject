@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 193286063288670345}
   - component: {fileID: 8464705997534955316}
+  - component: {fileID: 1477371202231937388}
   - component: {fileID: 5218611989934386400}
   - component: {fileID: 2918482163314897683}
   - component: {fileID: 4226778929347979155}
@@ -54,6 +55,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PieceDragger
   grid: {fileID: 0}
   everMoved: 0
+  isBelt: 0
+  beltEndCell: {x: -1, y: -1}
+--- !u!114 &1477371202231937388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8588518661016606444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de64e7d417dc14a45aeae8b8f8fb770e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceSwapHandler
 --- !u!225 &5218611989934386400
 CanvasGroup:
   m_ObjectHideFlags: 0
