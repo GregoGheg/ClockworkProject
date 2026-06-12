@@ -181,7 +181,6 @@ public class PieceDragger : MonoBehaviour,
         if (selected != null && selected != this) selected.Deselect();
         selected = this;
         lastInteracted = this;
-        LastSelectedDisplay.SetSprite(piece?.data?.pieceSprite);
         UnityEngine.Debug.Log($"[Select] lastInteracted={lastInteracted.piece?.data?.name} pos={lastInteracted.piece?.gridPosition}");
         SetHandlesVisible(true);
     }
@@ -257,7 +256,7 @@ public class PieceDragger : MonoBehaviour,
         available.canvasGroup.blocksRaycasts = true;
         available.canvasGroup.interactable = true;
         available.SetPlacedPosition(coord, grid);
-        lastInteracted = available;
+        available.Select();
         grid.OnGridChanged?.Invoke();
     }
 
@@ -316,18 +315,14 @@ public class PieceDragger : MonoBehaviour,
                 : 1f;
             float pixPerCell = grid.cellSize * scale;
 
-            bool invertDir = piece.rotation == 1 || piece.rotation == 2;
-            float eff = resizingFromTail
-                ? (invertDir ? -delta : delta)
-                : (invertDir ? delta : -delta);
+            float eff = resizingFromTail ? -delta : delta;
             int dc = Mathf.RoundToInt(eff / pixPerCell);
             int newLen = Mathf.Clamp(resizeLenStart + dc, 2, 4);
             if (newLen != resizeLastLen)
             {
-                if (resizingFromTail)
-                    resizer.TryResizePublicFrom(newLen, resizeHeadPos);
-                else
-                    resizer.TryResizePublicFromTail(newLen, resizeHeadPos);
+                // Il pivot è sempre resizeHeadPos (la cella fissa)
+                // TryResizePublicFrom usa pivot come gridPosition della cella i=0
+                resizer.TryResizePublicFrom(newLen, resizeHeadPos);
                 resizeLastLen = newLen;
             }
             return;

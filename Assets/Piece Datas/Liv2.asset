@@ -60,5 +60,5 @@ MonoBehaviour:
   circuitDestination: {x: 0, y: 10}
   sourceEnergyTypes: 
   destEnergyTypes: 
-  nodeSpacing: 24000
+  nodeSpacing: 2400
   cellSize: 80
