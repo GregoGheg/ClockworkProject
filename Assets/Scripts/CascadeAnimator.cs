@@ -72,7 +72,8 @@ public class CascadeAnimator : MonoBehaviour
         // Ottieni le celle in cascata dall'HydraulicSolver
         var map = CircuitSolver.BuildConductMap(grid);
         var pumps = CircuitSolver.BuildPumpCells(grid);
-        var source = grid.level.circuitSource;
+        var _srcs = grid.level.GetSources();
+        var source = _srcs.Count > 0 ? _srcs[0].position : grid.level.circuitSource;
         var flowMap = HydraulicSolver.GetFlowMap(map, source, grid.Width, grid.Height, grid);
 
         // Celle di cascata (isCascade=true) + celle laterali di partenza cascata

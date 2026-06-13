@@ -59,18 +59,23 @@ public class GearVisualizer : MonoBehaviour
     void RefreshGears()
     {
         var map = CircuitSolver.BuildConductMap(grid);
-        var source = grid.level.circuitSource;
-
-        // GetGearStates include solo le celle raggiunte dall'energia meccanica
-        // AddBeltGearsToMap aggiunge i gear collegati via cinghia alla mappa
         MechanicalSolver.AddBeltGearsToMap(map, grid);
-        var states = MechanicalSolver.GetGearStates(map, source, grid);
+
+        // Unisce gli stati dei gear da TUTTE le sorgenti che emettono meccanico
+        var states = new Dictionary<Vector2Int, bool>();
+        var mechReached = new HashSet<Vector2Int>();
+        foreach (var s in grid.level.GetSources())
+        {
+            if (!s.Emits(EnergyType.Mechanical)) continue;
+            var st = MechanicalSolver.GetGearStates(map, s.position, grid);
+            foreach (var kv in st) states[kv.Key] = kv.Value;
+            mechReached.UnionWith(MechanicalSolver.GetReachedCells(map, s.position));
+        }
+        BeltSolver.PropagateReached(mechReached, grid);
+
         // Calcola conflitti e propaga il blocco all'intera catena
         var directConflicts = MechanicalSolver.GetConflicts(states, grid);
         var allConflicts = MechanicalSolver.PropagateConflicts(directConflicts, states, map, grid);
-        // PropagateReached assicura che i gear via cinghia siano in reached per la visualizzazione
-        var mechReached = MechanicalSolver.GetReachedCells(map, source);
-        BeltSolver.PropagateReached(mechReached, grid);
 
         activeGears.Clear();
 
