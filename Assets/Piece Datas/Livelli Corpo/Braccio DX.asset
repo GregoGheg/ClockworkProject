@@ -165,8 +165,8 @@ MonoBehaviour:
   - {x: 13, y: 17}
   - {x: 13, y: 18}
   - {x: 13, y: 19}
-  circuitSource: {x: 0, y: 0}
-  circuitDestination: {x: 0, y: 0}
+  circuitSource: {x: 7, y: 13}
+  circuitDestination: {x: 13, y: 0}
   sourceEnergyTypes: 00000000010000000200000003000000
   destEnergyTypes: 00000000010000000200000003000000
   nodeSpacing: 1200
