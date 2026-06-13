@@ -123,6 +123,7 @@ public static class MechanicalSolver
 
         if (!conductMap.ContainsKey(source)) return pieceStates;
 
+        // ── BFS ortogonale standard ───────────────────────────────────────
         cellStates[source] = true;
         var queue = new Queue<Vector2Int>();
         queue.Enqueue(source);
@@ -152,10 +153,8 @@ public static class MechanicalSolver
                 if (cellStates.ContainsKey(next)) continue;
                 if (!conductMap.TryGetValue(next, out var nextCh)) continue;
 
-                bool allSidesCur2 = IsAllSides(curCh);
-                bool allSidesNext2 = IsAllSides(nextCh);
-                bool emits = allSidesCur2 || HasMechSide(curCh, outS, isOut: true);
-                bool accepts = allSidesNext2 || HasMechSide(nextCh, inS, isOut: false);
+                bool emits = IsAllSides(curCh) || HasMechSide(curCh, outS, isOut: true);
+                bool accepts = IsAllSides(nextCh) || HasMechSide(nextCh, inS, isOut: false);
                 if (!emits || !accepts) continue;
 
                 Vector2Int nextPiecePos = next;
@@ -175,41 +174,80 @@ public static class MechanicalSolver
             }
         }
 
-        // Applica le cinghie e propaga ai gear adiacenti
-        if (grid != null)
+        if (grid == null) return pieceStates;
+
+        // ── DEBUG cinghia ────────────────────────────────────────────────
+        UnityEngine.Debug.Log($"[MechSolver] pieceStates dopo BFS: {pieceStates.Count} entries: " +
+            string.Join(", ", new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<UnityEngine.Vector2Int, bool>>(pieceStates).ConvertAll(k => $"{k.Key}={k.Value}")));
+        var beltDbg = UnityEngine.Object.FindObjectsByType<PieceDragger>(UnityEngine.FindObjectsSortMode.None);
+        foreach (var dd in beltDbg)
         {
-            BeltSolver.ApplyBelts(pieceStates, grid);
+            if (!dd.isBelt || dd.piece.gridPosition.x < 0 || dd.beltEndCell.x < 0) continue;
+            var gA2 = GetGearGridPos(dd.piece.gridPosition, grid) ?? dd.piece.gridPosition;
+            var gB2 = GetGearGridPos(dd.beltEndCell, grid) ?? dd.beltEndCell;
+            UnityEngine.Debug.Log($"[MechSolver] cinghia: anchorRaw={dd.piece.gridPosition} endRaw={dd.beltEndCell} gearA={gA2} gearB={gB2} hasA={pieceStates.ContainsKey(gA2)} hasB={pieceStates.ContainsKey(gB2)}");
+        }
+        // ── Propagazione via cinghia (anche diagonale) + ortogonale ──────
+        // Strategia: le cinghie sono link DIRETTI tra due gridPosition di gear.
+        // Non passiamo attraverso celle intermedie: se uno dei due gear ha uno
+        // stato, l'altro lo eredita (stesso stato = stesso verso per la cinghia).
+        // Ripetiamo finché il sistema non converge.
+        bool changed = true;
+        int safety = 40;
+        while (changed && safety-- > 0)
+        {
+            changed = false;
 
-            bool changed = true;
-            int safetyLimit = 20;
-            while (changed && safetyLimit-- > 0)
+            // 1) Propaga via cinghia diretta (bypassa celle intermedie e diagonale)
+            var beltDraggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
+                UnityEngine.FindObjectsSortMode.None);
+            foreach (var d in beltDraggers)
             {
-                changed = false;
-                foreach (var kv in new Dictionary<Vector2Int, bool>(pieceStates))
-                {
-                    if (!conductMap.TryGetValue(kv.Key, out var kvCh)) continue;
-                    foreach (var (dir, outS, inS) in Dirs)
-                    {
-                        var nb = kv.Key + dir;
-                        if (pieceStates.ContainsKey(nb)) continue;
-                        if (!conductMap.TryGetValue(nb, out var nbCh)) continue;
-                        if (!IsAllSides(kvCh) && !HasMechSide(kvCh, outS, isOut: true)) continue;
-                        if (!IsAllSides(nbCh) && !HasMechSide(nbCh, inS, isOut: false)) continue;
+                if (!d.isBelt) continue;
+                if (d.piece.gridPosition.x < 0 || d.beltEndCell.x < 0) continue;
 
-                        Vector2Int nbPiecePos = nb;
-                        if (grid != null)
-                        {
-                            var ns = grid.GetCell(nb.x, nb.y);
-                            if (ns?.occupant != null) nbPiecePos = ns.occupant.gridPosition;
-                        }
-                        if (!pieceStates.ContainsKey(nbPiecePos))
-                        {
-                            pieceStates[nbPiecePos] = !kv.Value;
-                            changed = true;
-                        }
+                var posA = d.piece.gridPosition;
+                var posB = d.beltEndCell;
+
+                // Risolvi la gridPosition reale del gear (in caso di multi-cella)
+                var gearA = GetGearGridPos(posA, grid) ?? posA;
+                var gearB = GetGearGridPos(posB, grid) ?? posB;
+
+                bool hasA = pieceStates.ContainsKey(gearA);
+                bool hasB = pieceStates.ContainsKey(gearB);
+                if (!hasA && !hasB) continue;
+
+                bool stateA = hasA ? pieceStates[gearA] : pieceStates[gearB];
+                bool stateB = stateA; // cinghia = stesso verso
+
+                if (!hasA || pieceStates[gearA] != stateA)
+                { pieceStates[gearA] = stateA; changed = true; }
+                if (!hasB || pieceStates[gearB] != stateB)
+                { pieceStates[gearB] = stateB; changed = true; }
+            }
+
+            // 2) Propaga ortogonalmente dai gear appena raggiunti
+            foreach (var kv in new Dictionary<Vector2Int, bool>(pieceStates))
+            {
+                if (!conductMap.TryGetValue(kv.Key, out var kvCh)) continue;
+                foreach (var (dir, outS, inS) in Dirs)
+                {
+                    var nb = kv.Key + dir;
+                    if (pieceStates.ContainsKey(nb)) continue;
+                    if (!conductMap.TryGetValue(nb, out var nbCh)) continue;
+                    if (!IsAllSides(kvCh) && !HasMechSide(kvCh, outS, isOut: true)) continue;
+                    if (!IsAllSides(nbCh) && !HasMechSide(nbCh, inS, isOut: false)) continue;
+
+                    Vector2Int nbPiecePos = nb;
+                    var ns = grid.GetCell(nb.x, nb.y);
+                    if (ns?.occupant != null) nbPiecePos = ns.occupant.gridPosition;
+
+                    if (!pieceStates.ContainsKey(nbPiecePos))
+                    {
+                        pieceStates[nbPiecePos] = !kv.Value;
+                        changed = true;
                     }
                 }
-                BeltSolver.ApplyBelts(pieceStates, grid);
             }
         }
 
@@ -227,6 +265,19 @@ public static class MechanicalSolver
         var conflicts = new HashSet<Vector2Int>();
         if (grid == null) return conflicts;
 
+        // Coppie di ingranaggi collegate da cinghia: ruotano nello stesso verso
+        // PER DESIGN, quindi non vanno mai considerate in conflitto.
+        var beltPairs = new HashSet<(Vector2Int, Vector2Int)>();
+        var beltDraggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
+            UnityEngine.FindObjectsSortMode.None);
+        foreach (var d in beltDraggers)
+        {
+            if (!d.isBelt) continue;
+            if (d.piece.gridPosition.x < 0 || d.beltEndCell.x < 0) continue;
+            beltPairs.Add((d.piece.gridPosition, d.beltEndCell));
+            beltPairs.Add((d.beltEndCell, d.piece.gridPosition));
+        }
+
         foreach (var kv in pieceStates)
         {
             var coord = kv.Key;
@@ -240,6 +291,9 @@ public static class MechanicalSolver
                 if (!pieceStates.TryGetValue(nb, out var nbState)) continue;
                 var nbCs = grid.GetCell(nb.x, nb.y);
                 if (nbCs?.occupant == null || !nbCs.occupant.data.isGear) continue;
+                // Coppia collegata da cinghia → stesso verso voluto, nessun conflitto
+                if (beltPairs.Contains((cs.occupant.gridPosition, nbCs.occupant.gridPosition)))
+                    continue;
                 // Stesso stato = stesso verso di rotazione = conflitto
                 if (kv.Value == nbState)
                 {
@@ -283,6 +337,15 @@ public static class MechanicalSolver
             }
         }
         return blocked;
+    }
+
+    static Vector2Int? GetGearGridPos(Vector2Int coord, GridManager grid)
+    {
+        if (!grid.IsInBounds(coord)) return null;
+        var st = grid.GetCell(coord.x, coord.y);
+        if (st?.occupant != null && st.occupant.data.isGear)
+            return st.occupant.gridPosition;
+        return null;
     }
 
     static bool IsAllSides(List<PieceData.EnergyChannel> channels)

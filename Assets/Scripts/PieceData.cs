@@ -80,6 +80,12 @@ public class PieceData : ScriptableObject
     [Tooltip("Offset sprite")]
     public Vector2 pieceSpriteOffset = Vector2.zero;
 
+    [Header("Feedback piazzamento")]
+    [Tooltip("Suono riprodotto quando il pezzo viene piazzato sulla griglia")]
+    public AudioClip placeSound;
+    [Tooltip("Volume del suono di piazzamento")]
+    [Range(0f, 1f)] public float placeSoundVolume = 1f;
+
     public List<CellDef> cells = new();
     public Color color = Color.white;
 
@@ -96,6 +102,21 @@ public class PieceData : ScriptableObject
 
     [Tooltip("Se true, questo pezzo converte qualsiasi energia in ingresso in energia generica")]
     public bool isConverter = false;
+
+    // ── Convertitore tipizzato ───────────────────────────────────────────
+    [Header("Convertitore tipizzato")]
+    [Tooltip("Se true, converte uno SPECIFICO tipo di energia in un altro. " +
+             "Configura sotto IN e OUT (6 combinazioni possibili con lo stesso schema). " +
+             "IMPORTANTE: la cella del pezzo deve avere due canali energia: " +
+             "uno di tipo = converterInputType con i lati di INGRESSO in conductIn, " +
+             "e uno di tipo = converterOutputType con i lati di USCITA in conductOut.")]
+    public bool isTypedConverter = false;
+
+    [Tooltip("Tipo di energia che il convertitore RICEVE")]
+    public EnergyType converterInputType = EnergyType.Mechanical;
+
+    [Tooltip("Tipo di energia che il convertitore EMETTE")]
+    public EnergyType converterOutputType = EnergyType.Electric;
 
     [Tooltip("Se true, questo pezzo è un ingranaggio meccanico che ruota on/off")]
     public bool isGear = false;

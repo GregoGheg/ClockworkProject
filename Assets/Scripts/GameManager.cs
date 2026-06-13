@@ -166,8 +166,10 @@ public class GameManager : MonoBehaviour
 
         foreach (var saved in save.pieces)
         {
+            if (saved.isBelt) continue; // le cinghie vengono ripristinate dopo gli ingranaggi
+
             var dragger = allDraggers.Find(d =>
-                d.piece.data != null && d.piece.data.name == saved.pieceDataName
+                !d.isBelt && d.piece.data != null && d.piece.data.name == saved.pieceDataName
                 && d.piece.gridPosition.x < 0);
             if (dragger == null) continue;
 
@@ -177,6 +179,41 @@ public class GameManager : MonoBehaviour
 
             if (gridManager.TryPlace(dragger.piece, saved.gridPosition))
                 dragger.SnapToGridPublic(saved.gridPosition);
+        }
+
+        // ── Ripristina le cinghie (ora gli ingranaggi sono già piazzati) ──
+        foreach (var saved in save.pieces)
+        {
+            if (!saved.isBelt) continue;
+
+            var dragger = allDraggers.Find(d =>
+                d.isBelt && d.piece.data != null && d.piece.data.name == saved.pieceDataName
+                && d.piece.gridPosition.x < 0);
+            if (dragger == null) continue;
+
+            // Verifica che ci sia ancora un ingranaggio sulla cella di ancoraggio
+            var anchorCell = gridManager.GetCell(saved.gridPosition);
+            if (anchorCell?.occupant == null || !anchorCell.occupant.data.isGear) continue;
+
+            dragger.piece.gridPosition = saved.gridPosition;
+            dragger.everMoved = true;
+            dragger.transform.SetParent(gridManager.transform, false);
+            dragger.gameObject.SetActive(true);
+            dragger.canvasGroup.alpha = 1f;
+            dragger.canvasGroup.blocksRaycasts = true;
+
+            // Ripristina la connessione solo se l'altro ingranaggio esiste ancora
+            var endCell = saved.beltEndCell.x >= 0 ? gridManager.GetCell(saved.beltEndCell) : null;
+            if (endCell?.occupant != null && endCell.occupant.data.isGear)
+            {
+                dragger.beltEndCell = saved.beltEndCell;
+                dragger.StretchBetween(saved.gridPosition, saved.beltEndCell);
+            }
+            else
+            {
+                dragger.beltEndCell = new Vector2Int(-1, -1);
+                dragger.ShowAnchoredVisual();
+            }
         }
 
         gridManager.OnGridChanged?.Invoke();

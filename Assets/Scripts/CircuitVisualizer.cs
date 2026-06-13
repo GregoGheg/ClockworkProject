@@ -53,8 +53,10 @@ public class CircuitVisualizer : MonoBehaviour
         var mechReached = MechanicalSolver.GetReachedCells(map, source);
         var elecInstab = ElectricSolver.GetReachedWithInstability(map, source);
         var hydrReached = HydraulicSolver.GetReachedCells(map, source, grid.Width, grid.Height, grid);
+        var typedFlow = TypedConverterSolver.GetFlow(grid, source);
 
-        bool solved = mechReached.Contains(dest) || elecInstab.ContainsKey(dest) || hydrReached.Contains(dest);
+        bool solved = mechReached.Contains(dest) || elecInstab.ContainsKey(dest)
+                   || hydrReached.Contains(dest) || typedFlow.ContainsKey(dest);
 
         // Reset tutti gli overlay
         cellViews = null;
@@ -77,7 +79,8 @@ public class CircuitVisualizer : MonoBehaviour
                 bool inMech = mechReached.Contains(coord);
                 bool inElec = elecInstab.ContainsKey(coord);
                 bool inHydr = hydrReached.Contains(coord);
-                if (!inMech && !inElec && !inHydr) continue;
+                bool inTyped = typedFlow.ContainsKey(coord);
+                if (!inMech && !inElec && !inHydr && !inTyped) continue;
 
                 Color mixed = Color.clear;
                 int count = 0;
@@ -88,6 +91,17 @@ public class CircuitVisualizer : MonoBehaviour
                 {
                     // giallo fisso per elettrico
                     mixed += colorElectric;
+                    count++;
+                }
+                if (inTyped)
+                {
+                    // Convertitore tipizzato: colore del tipo di energia in uscita
+                    mixed += typedFlow[coord] switch
+                    {
+                        EnergyType.Mechanical => colorMechanical,
+                        EnergyType.Hydraulic => colorHydraulic,
+                        _ => colorElectric,
+                    };
                     count++;
                 }
 

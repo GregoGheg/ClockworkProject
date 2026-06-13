@@ -46,5 +46,7 @@ MonoBehaviour:
     quantity: 5
   - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
     quantity: 5
+  - data: {fileID: 11400000, guid: 584692814f4a3c644af47d741abdfd2c, type: 2}
+    quantity: 5
   startLevelIndex: 0
   trayScrollSpeed: 40000

@@ -34,6 +34,37 @@ public class GridManager : MonoBehaviour
     readonly List<Piece> placedPieces = new();
     public IReadOnlyList<Piece> PlacedPieces => placedPieces;
 
+    /// <summary>
+    /// Chiamato da LevelViewController dopo aver impostato cellSize e level.
+    /// Usa level.gridOffset (configurabile nel LevelData) per posizionare
+    /// la griglia. Il CircuitParticleOverlay è figlio con stretch 0→1
+    /// quindi si muove automaticamente insieme.
+    /// </summary>
+    public void ApplyLayout()
+    {
+        var rt = GetComponent<RectTransform>();
+        rt.pivot = Vector2.zero;
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(Width * cellSize, Height * cellSize);
+
+        // gridOffset=0,0 → griglia centrata; valori positivi spostano destra/su
+        rt.anchoredPosition = new Vector2(
+            -Width * cellSize * 0.5f + (level != null ? level.gridOffset.x : 0f),
+            -Height * cellSize * 0.5f + (level != null ? level.gridOffset.y : 0f));
+
+        // Aggancia il CircuitParticleOverlay alla griglia dopo ogni riposizionamento
+        var overlay = GetComponentInChildren<CircuitParticleOverlay>(true);
+        if (overlay == null)
+        {
+            // Cerca anche tra i fratelli (caso in cui l'overlay non sia figlio della griglia)
+            var parent = transform.parent;
+            if (parent != null)
+                overlay = parent.GetComponentInChildren<CircuitParticleOverlay>(true);
+        }
+        overlay?.AttachToGrid();
+    }
+
     void Awake()
     {
         var rt = GetComponent<RectTransform>();
@@ -42,6 +73,11 @@ public class GridManager : MonoBehaviour
         rt.pivot = Vector2.zero;
         rt.sizeDelta = new Vector2(Width * cellSize, Height * cellSize);
 
+        // ── Centratura automatica ─────────────────────────────────────────
+        // Ancora la griglia al centro del parent e la sposta indietro di metà
+        // della propria dimensione (il pivot resta (0,0) per non rompere le
+        // conversioni screen→cella). Così qualsiasi griglia (4x4, 12x12...)
+        // risulta centrata invece di restare ancorata in basso a sinistra.
         grid = new CellState[Width, Height];
         cellViews = new GridCell[Width, Height];
 

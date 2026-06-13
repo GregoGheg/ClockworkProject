@@ -62,3 +62,11 @@ MonoBehaviour:
   destEnergyTypes: 00000000020000000100000003000000
   nodeSpacing: 2400
   cellSize: 80
+  gridOffset: {x: 300, y: 50}
+  presetPieces:
+  - data: {fileID: 11400000, guid: 9b05f8c633812244e99577649591b40a, type: 2}
+    position: {x: 10, y: 10}
+    rotation: 0
+    runtimeLength: 0
+    locked: 1
+    beltEnd: {x: 0, y: 0}

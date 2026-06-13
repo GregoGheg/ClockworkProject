@@ -16,6 +16,8 @@ MonoBehaviour:
   pieceSpriteScale: {x: 1, y: 1}
   pieceSpriteScaleRotated: {x: 1, y: 1}
   pieceSpriteOffset: {x: 0, y: 0}
+  placeSound: {fileID: 8300000, guid: 85f6ae5488d86ff49b6d2d4127cc1855, type: 3}
+  placeSoundVolume: 1
   cells:
   - localCoord: {x: 0, y: 0}
     occupiesSpace: 1
@@ -63,6 +65,9 @@ MonoBehaviour:
   isPump: 1
   pumpOutDirection: 4
   isConverter: 0
+  isTypedConverter: 0
+  converterInputType: 0
+  converterOutputType: 2
   isGear: 0
   isLarge: 0
   isCollector: 0

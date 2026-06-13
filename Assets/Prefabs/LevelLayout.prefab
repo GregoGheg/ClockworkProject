@@ -367,18 +367,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitParticleOverlay
   colorMechanical: {r: 0.9019608, g: 0.38387412, b: 0.10196079, a: 1}
-  colorMechanicalLine: {r: 0.90196085, g: 0.38431376, b: 0.10196079, a: 0.6}
+  colorMechanicalLine: {r: 0.90196085, g: 0.38431376, b: 0.10196079, a: 0.8}
   colorMechanicalPulse: {r: 0.7075472, g: 0.23133172, b: 0.036712356, a: 1}
   colorHydraulic: {r: 0.2, g: 0.6, b: 1, a: 1}
-  colorHydraulicLine: {r: 0.2, g: 0.6, b: 1, a: 0.6}
+  colorHydraulicLine: {r: 0.2, g: 0.6, b: 1, a: 0.8}
   colorHydraulicPulse: {r: 0.5, g: 0.85, b: 1, a: 1}
   colorElectric: {r: 1, g: 0.98823535, b: 0.14509805, a: 1}
-  colorElectricLine: {r: 1, g: 0.986448, b: 0.1462264, a: 0.6}
+  colorElectricLine: {r: 1, g: 0.986448, b: 0.1462264, a: 0.8}
   colorElectricPulse: {r: 1, g: 1, b: 0.6, a: 1}
-  dotRadius: 0.161
-  lineThickness: 0.0907
+  dotRadius: 0.14
+  lineThickness: 0.0885
   pulseSpeed: 1.52
-  colorElectricMax: {r: 1, g: 0.15, b: 0.05, a: 1}
+  colorElectricMax: {r: 0.4509804, g: 0, b: 0.03198976, a: 1}
 --- !u!222 &4721928343580005872
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -396,6 +396,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6042239754437865569}
+  - component: {fileID: 5867659469756696841}
   - component: {fileID: 688824711203824639}
   - component: {fileID: 6828489544769800334}
   - component: {fileID: 1447162085363473433}
@@ -428,6 +429,18 @@ RectTransform:
   m_AnchoredPosition: {x: -238.00006, y: -437.38147}
   m_SizeDelta: {x: 480, y: 480}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &5867659469756696841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3233805319281099195}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b895df4deccd0654c9891ea328eeb52b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BeltDebugger
 --- !u!114 &688824711203824639
 MonoBehaviour:
   m_ObjectHideFlags: 0

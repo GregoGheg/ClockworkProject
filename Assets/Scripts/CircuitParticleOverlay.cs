@@ -80,28 +80,47 @@ public class CircuitParticleOverlay : MonoBehaviour
 
     void Start()
     {
-        // Posiziona l'overlay esattamente sopra la griglia
-        // Deve essere figlio di GridContainer — si adatta automaticamente
+        AttachToGrid();
+        grid.OnGridChanged += Refresh;
+        grid.OnGridChanged += BringToFront;
+    }
+
+    /// <summary>
+    /// Reparenta l'overlay al RectTransform della griglia e lo fa
+    /// coprire esattamente tutta la griglia con stretch 0→1.
+    /// Viene chiamato anche da GridManager.ApplyLayout() dopo ogni
+    /// riposizionamento della griglia.
+    /// </summary>
+    public void AttachToGrid()
+    {
+        if (grid == null) return;
+
+        // Reparenta al GridManager se non è già suo figlio diretto
+        if (transform.parent != grid.transform)
+            transform.SetParent(grid.transform, false);
+
         var rt = GetComponent<RectTransform>();
         if (rt == null) rt = gameObject.AddComponent<RectTransform>();
 
-        // Stretch su tutto il parent (GridContainer)
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.one;
         rt.pivot = new Vector2(0.5f, 0.5f);
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
 
-        // Metti in cima al sorting (ultimo figlio = renderizzato sopra)
         transform.SetAsLastSibling();
-
-        grid.OnGridChanged += Refresh;
     }
 
     void OnDestroy()
     {
-        if (grid != null) grid.OnGridChanged -= Refresh;
+        if (grid != null)
+        {
+            grid.OnGridChanged -= Refresh;
+            grid.OnGridChanged -= BringToFront;
+        }
     }
+
+    void BringToFront() => transform.SetAsLastSibling();
 
     [Tooltip("Colore elettrico ad instabilità massima")]
     public Color colorElectricMax = new Color(1f, 0.15f, 0.05f, 1f);
@@ -152,10 +171,13 @@ public class CircuitParticleOverlay : MonoBehaviour
         var elecLinks = CircuitSolver.GetEnergyLinks(grid, source, EnergyType.Electric);
         var hydrLinks = CircuitSolver.GetEnergyLinks(grid, source, EnergyType.Hydraulic);
 
+        var typedFlow = TypedConverterSolver.GetFlow(grid, source);
+
         var allReached = new HashSet<Vector2Int>(mechReached);
         foreach (var k in elecInstab.Keys) allReached.Add(k);
         allReached.UnionWith(hydrReached);
         foreach (var k in genericFlow.Keys) allReached.Add(k);
+        foreach (var k in typedFlow.Keys) allReached.Add(k);
 
         if (allReached.Count == 0) { HideUnused(); return; }
 
@@ -210,6 +232,16 @@ public class CircuitParticleOverlay : MonoBehaviour
                 pulseColor = ElectricColorForInstability(avg, 0.5f);
                 GetOrCreateLine(kv.Key, neighbor);
             }
+        }
+
+        // Dot convertitori tipizzati — celle non già coperte dagli altri flussi
+        foreach (var kv in typedFlow)
+        {
+            if (mechReached.Contains(kv.Key) || elecInstab.ContainsKey(kv.Key)
+                || hydrReached.Contains(kv.Key) || genericFlow.ContainsKey(kv.Key)
+                || collectorFlow.ContainsKey(kv.Key)) continue;
+            (dotColor, pulseColor) = ColorForType(kv.Value);
+            GetOrCreateDot(kv.Key);
         }
 
         // Celle raggiunte via convertitore elettrico

@@ -8,6 +8,9 @@ public class Piece
     public Vector2Int gridPosition = new(-1, -1);
     public int? runtimeLength = null;
     public bool everMoved = false;
+    /// <summary>Pezzo pre-piazzato dal livello (LevelPresetSpawner):
+    /// non conta nell'inventario globale e non viene salvato/ripristinato.</summary>
+    public bool isPreset = false;
 
     public Piece Clone() => new Piece
     {
@@ -16,6 +19,7 @@ public class Piece
         gridPosition = gridPosition,
         runtimeLength = runtimeLength,
         everMoved = everMoved,
+        isPreset = isPreset,
     };
 
     /// <summary>Celle con coordinate già ruotate in spazio locale.</summary>

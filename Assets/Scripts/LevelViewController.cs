@@ -97,8 +97,12 @@ public class LevelViewController : MonoBehaviour
             gridMgr.level = entry.levelData;
             gridMgr.cellSize = entry.levelData.cellSize;
             gameManager.gridManager = gridMgr;
+            // ApplyLayout centra la griglia DOPO che cellSize è noto
+            // (Awake viene chiamato subito dopo SetActive(true) qui sotto)
         }
         levelInstance.SetActive(true); // ora Awake trova level già assegnato
+        // cellSize è già impostato → ApplyLayout può centrare correttamente
+        gridMgr?.ApplyLayout();
 
         var scrollRect = levelInstance.GetComponentInChildren<ScrollRect>();
         if (scrollRect != null) gameManager.trayContainer = scrollRect.content;
@@ -118,7 +122,11 @@ public class LevelViewController : MonoBehaviour
         if (gameManager?.gridManager == null) return 0;
         int count = 0;
         foreach (var piece in gameManager.gridManager.PlacedPieces)
-            if (piece.data == data && piece.gridPosition.x >= 0) count++;
+            if (piece.data == data && piece.gridPosition.x >= 0 && !piece.isPreset) count++;
+        // Le cinghie non sono in PlacedPieces (non occupano celle): contale dai dragger
+        foreach (var d in GetComponentsInChildren<PieceDragger>(true))
+            if (d.isBelt && d.piece?.data == data && d.piece.gridPosition.x >= 0 && !d.piece.isPreset)
+                count++;
         return count;
     }
 
@@ -130,12 +138,30 @@ public class LevelViewController : MonoBehaviour
         foreach (var piece in gameManager.gridManager.PlacedPieces)
         {
             if (piece.gridPosition.x < 0) continue;
+            if (piece.isPreset) continue; // i preset vengono rispawnati dal LevelPresetSpawner
             save.pieces.Add(new LevelSaveData.PlacedPieceData
             {
                 pieceDataName = piece.data.name,
                 gridPosition = piece.gridPosition,
                 rotation = piece.rotation,
                 runtimeLength = piece.runtimeLength ?? piece.data.cells.Count
+            });
+        }
+
+        // ── Salva anche le cinghie: non sono in PlacedPieces ─────────────
+        foreach (var d in GetComponentsInChildren<PieceDragger>(true))
+        {
+            if (!d.isBelt) continue;
+            if (d.piece == null || d.piece.gridPosition.x < 0) continue;
+            if (d.piece.isPreset) continue;
+            save.pieces.Add(new LevelSaveData.PlacedPieceData
+            {
+                pieceDataName = d.piece.data.name,
+                gridPosition = d.piece.gridPosition,
+                rotation = d.piece.rotation,
+                runtimeLength = d.piece.runtimeLength ?? d.piece.data.cells.Count,
+                isBelt = true,
+                beltEndCell = d.beltEndCell,
             });
         }
         return save;

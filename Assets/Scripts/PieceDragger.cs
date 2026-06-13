@@ -44,6 +44,7 @@ public class PieceDragger : MonoBehaviour,
     [HideInInspector] public bool isBelt = false;
     [HideInInspector] public Vector2Int beltEndCell = new Vector2Int(-1, -1);
     Vector2 dragStartScreenPos;
+    Vector2? _beltPressPosition = null; // posizione screen del press per click-drop cinghia
     int resizeLenStart = 0;
     int resizeLastLen = 0;
     bool resizingFromTail = false;
@@ -129,10 +130,15 @@ public class PieceDragger : MonoBehaviour,
         {
             isDragging = false;
             lastInteracted = this;
-            // Aggiorna il timer per lastInteracted — usato da GridCell.TryPlaceLastSelected
             lastLeftClickTime = Time.unscaledTime;
             lastClickedPiece = this;
-            pendingDoubleClick = false; // il doppio click è gestito da GridCell sulle celle vuote
+            pendingDoubleClick = false;
+            // Per cinghia già ancorata (fase 2): salva la posizione del press
+            // per poter calcolare la cella di drop se il drag non scatta
+            if (isBelt && piece.gridPosition.x >= 0)
+                _beltPressPosition = e.position;
+            else
+                _beltPressPosition = null;
         }
         if (e.button != PointerEventData.InputButton.Right) return;
         var resizer = GetComponentInChildren<SpringResizer>();
@@ -170,6 +176,19 @@ public class PieceDragger : MonoBehaviour,
         if (e.button == PointerEventData.InputButton.Left)
         {
             pendingDoubleClick = false;
+
+            // Cinghia ancorata: se il drag non è scattato (isDragging=false)
+            // trattiamo il PointerUp come un click-drop verso la cella sotto il cursore
+            if (isBelt && piece.gridPosition.x >= 0 && !isDragging && _beltPressPosition.HasValue)
+            {
+                _beltPressPosition = null;
+                var gc = grid.ScreenToGridCoord(e.position, null);
+                canvasGroup.blocksRaycasts = true;
+                canvasGroup.alpha = 1f;
+                HandleBeltDrop(gc);
+                return;
+            }
+            _beltPressPosition = null;
             isDragging = false;
         }
         if (e.button != PointerEventData.InputButton.Right) return;
@@ -259,6 +278,7 @@ public class PieceDragger : MonoBehaviour,
         available.SetPlacedPosition(coord, grid);
         grid.OnGridChanged?.Invoke();
         available.Select();
+        available.PlayPlaceFeedback();
     }
 
     void SetHandlesVisible(bool v)
@@ -273,6 +293,9 @@ public class PieceDragger : MonoBehaviour,
 
         // Segna che il drag è iniziato — usato da OnPointerUp per escludere il doppio click
         isDragging = true;
+
+        // ── Cinghia: drag dedicato (ancoraggio + corda) ──────────────────
+        if (isBelt) { BeginBeltDrag(e); return; }
 
         Select();
         SetHandlesVisible(false);
@@ -335,6 +358,9 @@ public class PieceDragger : MonoBehaviour,
 
         if (e.button != PointerEventData.InputButton.Left) return;
 
+        // ── Cinghia: durante il drag disegna la corda, niente preview ───
+        if (isBelt) { DragBelt(e); return; }
+
         if (dragGhost != null)
         {
             RectTransformUtility.ScreenPointToWorldPointInRectangle(
@@ -355,22 +381,27 @@ public class PieceDragger : MonoBehaviour,
         if (e.button == PointerEventData.InputButton.Right) { isResizing = false; return; }
         if (e.button != PointerEventData.InputButton.Left) return;
 
-        canvasGroup.blocksRaycasts = true;
-        canvasGroup.alpha = 1f;
         grid.ClearPreview();
 
         var gc = grid.ScreenToGridCoord(e.position, null);
-        // Salva snapshot PRIMA del piazzamento (con la posizione precedente)
-        // ma solo se il drop avrà successo — usiamo CanPlace per verificare
-        bool canPlace = grid.CanPlace(piece, gc);
-        if (canPlace) LocalGameManager?.SaveSnapshot();
 
         // ── Logica cinghia ────────────────────────────────────────────
         if (isBelt)
         {
-            PlaceBelt(gc);
+            // Per la cinghia ripristina visibilità DOPO il drop
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.alpha = 1f;
+            UnityEngine.Debug.Log($"[BeltEndDrag] e.pos={e.position} gc={gc} anchor={piece.gridPosition}");
+            HandleBeltDrop(gc);
             return;
         }
+
+        canvasGroup.blocksRaycasts = true;
+        canvasGroup.alpha = 1f;
+
+        // Salva snapshot PRIMA del piazzamento
+        bool canPlace = grid.CanPlace(piece, gc);
+        if (canPlace) LocalGameManager?.SaveSnapshot();
 
         bool placed = grid.TryPlace(piece, gc);
 
@@ -378,6 +409,7 @@ public class PieceDragger : MonoBehaviour,
         {
             everMoved = true;
             SnapToGrid(gc);
+            PlayPlaceFeedback();
             AttachResizer();
             GetComponentInChildren<SpringResizer>()?.SetHandlesVisible(selected == this);
         }
@@ -404,44 +436,195 @@ public class PieceDragger : MonoBehaviour,
     }
 
     // ── Cinghia ───────────────────────────────────────────────────────────
-    void PlaceBelt(Vector2Int dropCell)
+    // Interazione in due fasi:
+    //  Fase 1 — trascini la cinghia dal tray su un ingranaggio: si "ancora" lì
+    //           (anello attorno all'ingranaggio).
+    //  Fase 2 — trascini la cinghia ancorata come una corda verso un ingranaggio
+    //           adiacente (8 direzioni): i due ingranaggi vengono collegati e
+    //           ruotano nello stesso verso (BeltSolver li forza allo stesso stato,
+    //           MechanicalSolver esclude la coppia dai conflitti).
+
+    void BeginBeltDrag(PointerEventData e)
     {
-        // Trova il gear più vicino alla cella di drop (end)
-        var gearB = FindGearAt(dropCell);
-        if (gearB == null) { GoBackToTray(); return; }
+        Select();
+        originalAnchoredPos = rectTransform.anchoredPosition;
 
-        // Cerca un secondo gear adiacente (distanza 1 in 8 direzioni)
-        // Prende il più vicino che non sia lo stesso
-        Vector2Int? gearA = null;
-        float minDist = float.MaxValue;
-        for (int dx2 = -1; dx2 <= 1; dx2++)
-            for (int dy2 = -1; dy2 <= 1; dy2++)
-            {
-                if (dx2 == 0 && dy2 == 0) continue;
-                var neighbor = gearB.Value + new Vector2Int(dx2, dy2);
-                if (!grid.IsInBounds(neighbor)) continue;
-                var st = grid.GetCell(neighbor.x, neighbor.y);
-                if (st?.occupant == null || !st.occupant.data.isGear) continue;
-                var gPos = st.occupant.gridPosition;
-                if (gPos == gearB.Value) continue;
+        if (piece.gridPosition.x < 0)
+        {
+            // Fase 1: drag dal tray — comportamento simile ai pezzi normali
+            originalParent = transform.parent;
+            var slot = originalParent?.GetComponent<TraySlot>()
+                    ?? originalParent?.GetComponentInParent<TraySlot>();
+            slot?.HideDuringDrag(this);
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.alpha = 0f;
+            CreateDragGhost(e.position);
+            onRemovedFromTray?.Invoke();
+        }
+        else
+        {
+            // Fase 2: la cinghia è già ancorata — inizia il drag "a corda".
+            // blocksRaycasts=false: il drop passa attraverso la cinghia e arriva alla griglia.
+            beltEndCell = new Vector2Int(-1, -1);
+            isDragging = true; // marca subito come drag così OnPointerUp non lo intercetta
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.alpha = 0.6f;
+        }
+    }
 
-                // Preferisce il gear nella direzione del drag
-                float d = Vector2Int.Distance(gPos, dropCell);
-                if (d < minDist) { minDist = d; gearA = gPos; }
-            }
+    void DragBelt(PointerEventData e)
+    {
+        if (piece.gridPosition.x >= 0)
+        {
+            // Corda elastica dal centro dell'ingranaggio ancorato al cursore
+            var gridRT = grid.GetComponent<RectTransform>();
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                gridRT, e.position, e.pressEventCamera, out Vector2 local);
+            StretchToPoint(piece.gridPosition, local);
+        }
+        else if (dragGhost != null)
+        {
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(
+                rootCanvas.GetComponent<RectTransform>(),
+                e.position, null, out Vector3 worldPoint);
+            dragGhost.transform.position = worldPoint;
+        }
+    }
 
-        if (gearA == null) { GoBackToTray(); return; }
+    void HandleBeltDrop(Vector2Int dropCell)
+    {
+        canvasGroup.blocksRaycasts = true;
+        canvasGroup.alpha = 1f;
 
-        piece.gridPosition = gearA.Value;
-        beltEndCell = gearB.Value;
-        everMoved = true;
+        bool wasAnchored = piece.gridPosition.x >= 0;
+        var gearAtDrop = FindGearAt(dropCell);
+        UnityEngine.Debug.Log($"[BeltDrop] dropCell={dropCell} wasAnchored={wasAnchored} anchor={piece.gridPosition} gearAtDrop={gearAtDrop?.ToString() ?? "NULL"}");
 
-        transform.SetParent(grid.transform, false);
-        StretchBetween(gearA.Value, gearB.Value);
+        if (!wasAnchored)
+        {
+            // ── Fase 1: ancoraggio su un ingranaggio ─────────────────────
+            if (gearAtDrop == null) { GoBackToTray(); return; }
+
+            piece.gridPosition = gearAtDrop.Value;
+            beltEndCell = new Vector2Int(-1, -1);
+            everMoved = true;
+            transform.SetParent(grid.transform, false);
+            ShowAnchoredVisual();
+            PlayPlaceFeedback();
+            grid.OnGridChanged?.Invoke();
+            return;
+        }
+
+        // ── Fase 2: connessione a corda ──────────────────────────────────
+        // La cinghia collega qualsiasi due gear distinti (anche diagonali/distanti)
+        var anchor = piece.gridPosition;
+        if (gearAtDrop != null && gearAtDrop.Value != anchor)
+        {
+            beltEndCell = gearAtDrop.Value;
+            StretchBetween(anchor, beltEndCell);
+            PlayPlaceFeedback();
+            grid.OnGridChanged?.Invoke();
+            return;
+        }
+
+        // Drop non valido → la cinghia resta ancorata senza connessione
+        beltEndCell = new Vector2Int(-1, -1);
+        ShowAnchoredVisual();
         grid.OnGridChanged?.Invoke();
     }
 
-    void StretchBetween(Vector2Int from, Vector2Int to)
+    /// <summary>Vero se i pezzi alle due gridPosition hanno almeno una coppia
+    /// di celle fisiche a distanza Chebyshev ≤ 1 (adiacenti anche in diagonale).</summary>
+    bool PiecesAdjacent(Vector2Int posA, Vector2Int posB)
+    {
+        var pa = grid.GetCell(posA)?.occupant;
+        var pb = grid.GetCell(posB)?.occupant;
+        if (pa == null || pb == null || pa == pb) return false;
+
+        foreach (var ca in pa.WorldCells())
+        {
+            if (!ca.occupiesSpace) continue;
+            foreach (var cb in pb.WorldCells())
+            {
+                if (!cb.occupiesSpace) continue;
+                int dx = Mathf.Abs(ca.localCoord.x - cb.localCoord.x);
+                int dy = Mathf.Abs(ca.localCoord.y - cb.localCoord.y);
+                if (dx <= 1 && dy <= 1) return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>Visual "anello" attorno all'ingranaggio di ancoraggio (fase 1).</summary>
+    public void ShowAnchoredVisual()
+    {
+        float size = grid.cellSize;
+        float gearSize = GetGearVisualSize(piece.gridPosition);
+        var center = new Vector2(
+            piece.gridPosition.x * size + gearSize * 0.5f,
+            piece.gridPosition.y * size + gearSize * 0.5f);
+
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.zero;
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.anchoredPosition = center;
+        rectTransform.sizeDelta = Vector2.one * gearSize * 1.15f;
+        rectTransform.localEulerAngles = Vector3.zero;
+
+        SetupBeltSpriteFill();
+        HideCellChildren();
+    }
+
+    /// <summary>Visual "corda" dal centro dell'ingranaggio a un punto locale della griglia.</summary>
+    public void StretchToPoint(Vector2Int from, Vector2 toLocal)
+    {
+        float size = grid.cellSize;
+        float sizeA = GetGearVisualSize(from);
+        var sPos = new Vector2(from.x * size + sizeA * 0.5f, from.y * size + sizeA * 0.5f);
+        var diff = toLocal - sPos;
+        var mid = (sPos + toLocal) * 0.5f;
+        float dist = Mathf.Max(diff.magnitude, size * 0.25f);
+        float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
+        float beltH = sizeA * 0.3f;
+
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.zero;
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.anchoredPosition = mid;
+        rectTransform.sizeDelta = new Vector2(dist, beltH);
+        rectTransform.localEulerAngles = new Vector3(0, 0, angle);
+
+        SetupBeltSpriteFill();
+        HideCellChildren();
+    }
+
+    /// <summary>Lo sprite della cinghia riempie tutto il rect del dragger.</summary>
+    void SetupBeltSpriteFill()
+    {
+        var spriteT = transform.Find("piece_sprite");
+        if (spriteT == null) return;
+        var srt = spriteT.GetComponent<RectTransform>();
+        if (srt == null) return;
+        srt.anchorMin = Vector2.zero;
+        srt.anchorMax = Vector2.one;
+        srt.pivot = new Vector2(0.5f, 0.5f);
+        srt.offsetMin = srt.offsetMax = Vector2.zero;
+        srt.localEulerAngles = Vector3.zero;
+    }
+
+    /// <summary>Nasconde i quadrati "cell_" del RedrawVisual: per la cinghia
+    /// si vede solo lo sprite stretchato.</summary>
+    void HideCellChildren()
+    {
+        foreach (Transform child in transform)
+        {
+            if (!child.name.StartsWith("cell_")) continue;
+            var img = child.GetComponent<Image>();
+            if (img != null) img.enabled = false;
+        }
+    }
+
+    public void StretchBetween(Vector2Int from, Vector2Int to)
     {
         float size = grid.cellSize;
 
@@ -469,6 +652,8 @@ public class PieceDragger : MonoBehaviour,
         rectTransform.anchoredPosition = mid;
         rectTransform.sizeDelta = new Vector2(dist, beltH);
         rectTransform.localEulerAngles = new Vector3(0, 0, angle);
+
+        HideCellChildren();
 
         var spriteT = transform.Find("piece_sprite");
         if (spriteT != null)
@@ -507,9 +692,10 @@ public class PieceDragger : MonoBehaviour,
 
     Vector2Int? FindGearAt(Vector2Int coord)
     {
-        if (!grid.IsInBounds(coord)) return null;
+        if (!grid.IsInBounds(coord)) { UnityEngine.Debug.Log($"[FindGear] {coord} OUT OF BOUNDS"); return null; }
         var st = grid.GetCell(coord.x, coord.y);
-        if (st?.occupant != null && st.occupant.data.isGear) return coord;
+        UnityEngine.Debug.Log($"[FindGear] coord={coord} occupant={st?.occupant?.data?.name ?? "null"} isGear={st?.occupant?.data?.isGear}");
+        if (st?.occupant != null && st.occupant.data.isGear) return st.occupant.gridPosition;
         // Cerca anche nelle celle adiacenti per ingranaggi grandi
         for (int dx2 = -1; dx2 <= 1; dx2++)
             for (int dy2 = -1; dy2 <= 1; dy2++)
@@ -518,7 +704,8 @@ public class PieceDragger : MonoBehaviour,
                 var c = coord + new Vector2Int(dx2, dy2);
                 if (!grid.IsInBounds(c)) continue;
                 var s = grid.GetCell(c.x, c.y);
-                if (s?.occupant != null && s.occupant.data.isGear) return s.occupant.gridPosition;
+                if (s?.occupant != null && s.occupant.data.isGear)
+                { UnityEngine.Debug.Log($"[FindGear] trovato gear vicino in {c} gridPos={s.occupant.gridPosition}"); return s.occupant.gridPosition; }
             }
         return null;
     }
@@ -564,6 +751,7 @@ public class PieceDragger : MonoBehaviour,
 
     void GoBackToTray()
     {
+        rectTransform.localEulerAngles = Vector3.zero;
         rectTransform.pivot = Vector2.zero;
         rectTransform.anchoredPosition = originalAnchoredPos;
         piece.gridPosition = new Vector2Int(-1, -1);
@@ -581,6 +769,32 @@ public class PieceDragger : MonoBehaviour,
     public void ReturnToTray()
     {
         if (piece.gridPosition.x < 0) return;
+
+        // ── Cinghia: non occupa celle, quindi NIENTE grid.Remove
+        //    (cancellerebbe l'occupazione degli ingranaggi sottostanti) ────
+        if (isBelt)
+        {
+            piece.gridPosition = new Vector2Int(-1, -1);
+            beltEndCell = new Vector2Int(-1, -1);
+            rectTransform.localEulerAngles = Vector3.zero;
+            rectTransform.pivot = Vector2.zero;
+
+            TraySlot beltSlot = originalParent?.GetComponent<TraySlot>()
+                             ?? originalParent?.GetComponentInParent<TraySlot>();
+            if (beltSlot == null)
+                foreach (var slot in UnityEngine.Object.FindObjectsByType<TraySlot>(
+                    UnityEngine.FindObjectsSortMode.None))
+                    if (slot.GetDraggers().Contains(this)) { beltSlot = slot; break; }
+
+            if (beltSlot != null) beltSlot.ReturnFromDrag(this);
+            else if (originalParent != null) transform.SetParent(originalParent, false);
+
+            RedrawVisual();
+            Deselect();
+            ClearSelection();
+            grid.OnGridChanged?.Invoke();
+            return;
+        }
 
         // Nascondi tutte le celle secondarie dello stesso pezzo
         var allDraggers = grid.GetComponentsInChildren<PieceDragger>(true);
@@ -678,6 +892,35 @@ public class PieceDragger : MonoBehaviour,
             for (int i = 0; i < cur.Length; i++) cur[i].color = origColors[i];
         else
             RedrawVisual();
+    }
+
+    // ── Feedback piazzamento (bounce + suono) ─────────────────────────────
+    /// <summary>Piccolo bounce di scala + suono specifico del pezzo (PieceData.placeSound).</summary>
+    public void PlayPlaceFeedback()
+    {
+        if (piece?.data?.placeSound != null)
+            PlaceFeedbackAudio.Play(piece.data.placeSound, piece.data.placeSoundVolume);
+
+        if (!gameObject.activeInHierarchy) return;
+        StopCoroutine(nameof(BounceRoutine));
+        StartCoroutine(nameof(BounceRoutine));
+    }
+
+    System.Collections.IEnumerator BounceRoutine()
+    {
+        const float duration = 0.22f;
+        const float amplitude = 0.15f; // +15% al picco
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float s = 1f + amplitude * Mathf.Sin(t * Mathf.PI);
+            transform.localScale = Vector3.one * s;
+            yield return null;
+        }
+        transform.localScale = Vector3.one;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -886,5 +1129,28 @@ public class PieceDragger : MonoBehaviour,
             resizer.transform.SetAsLastSibling();
             resizer.RefreshHandles();
         }
+    }
+}
+
+/// <summary>
+/// Helper statico per i suoni di piazzamento: un solo AudioSource 2D
+/// condiviso, creato al primo uso (PlayOneShot, nessun GameObject per suono).
+/// </summary>
+public static class PlaceFeedbackAudio
+{
+    static AudioSource source;
+
+    public static void Play(AudioClip clip, float volume = 1f)
+    {
+        if (clip == null) return;
+        if (source == null)
+        {
+            var go = new GameObject("PlaceFeedbackAudio");
+            UnityEngine.Object.DontDestroyOnLoad(go);
+            source = go.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.spatialBlend = 0f; // suono 2D
+        }
+        source.PlayOneShot(clip, Mathf.Clamp01(volume));
     }
 }

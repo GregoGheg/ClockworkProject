@@ -18,6 +18,9 @@ public static class CircuitSolver
             result.UnionWith(ElectricSolver.GetReachedCells(map, source));
         if (level.SourceEmits(EnergyType.Hydraulic))
             result.UnionWith(HydraulicSolver.GetReachedCells(map, source, grid.Width, grid.Height, grid));
+        // Energia prodotta dai convertitori tipizzati
+        foreach (var kv in TypedConverterSolver.GetFlow(grid, source))
+            result.Add(kv.Key);
         return result;
     }
     public static Dictionary<Vector2Int, HydraulicSolver.FlowCell> GetHydraulicFlowMap(
@@ -31,21 +34,30 @@ public static class CircuitSolver
     public static HashSet<Vector2Int> GetReachedCells(
         GridManager grid, Vector2Int source, EnergyType type)
     {
-        if (!grid.level.SourceEmits(type)) return new HashSet<Vector2Int>();
+        var result = new HashSet<Vector2Int>();
         var map = BuildConductMap(grid);
-        if (type == EnergyType.Mechanical)
+
+        if (grid.level.SourceEmits(type))
         {
-            MechanicalSolver.AddBeltGearsToMap(map, grid);
-            var mechReached = MechanicalSolver.GetReachedCells(map, source);
-            BeltSolver.PropagateReached(mechReached, grid);
-            return mechReached;
+            if (type == EnergyType.Mechanical)
+            {
+                MechanicalSolver.AddBeltGearsToMap(map, grid);
+                var mechReached = MechanicalSolver.GetReachedCells(map, source);
+                BeltSolver.PropagateReached(mechReached, grid);
+                result.UnionWith(mechReached);
+            }
+            else if (type == EnergyType.Electric)
+                result.UnionWith(ElectricSolver.GetReachedCells(map, source));
+            else if (type == EnergyType.Hydraulic)
+                result.UnionWith(HydraulicSolver.GetReachedCells(map, source, grid.Width, grid.Height, grid));
         }
-        return type switch
-        {
-            EnergyType.Electric => ElectricSolver.GetReachedCells(map, source),
-            EnergyType.Hydraulic => HydraulicSolver.GetReachedCells(map, source, grid.Width, grid.Height, grid),
-            _ => new HashSet<Vector2Int>()
-        };
+
+        // Energia di questo tipo prodotta dai convertitori tipizzati
+        // (es. sorgente meccanica → convertitore → celle elettriche)
+        foreach (var kv in TypedConverterSolver.GetFlow(grid, source))
+            if (kv.Value == type) result.Add(kv.Key);
+
+        return result;
     }
     public static Dictionary<Vector2Int, float> GetElectricInstability(GridManager grid, Vector2Int source)
     {
@@ -79,6 +91,10 @@ public static class CircuitSolver
             var cFlow = GetCollectorFlow(grid, source);
             if (cFlow.ContainsKey(dest)) return true;
         }
+        // Convertitori tipizzati (IN un tipo → OUT un altro)
+        var typedFlow = TypedConverterSolver.GetFlow(grid, source);
+        if (typedFlow.TryGetValue(dest, out var typedType)
+            && grid.level.DestAccepts(typedType)) return true;
         return false;
     }
     public static List<(Vector2Int from, Vector2Int to)> GetEnergyLinks(
@@ -97,6 +113,9 @@ public static class CircuitSolver
         {
             var flow = HydraulicSolver.GetFlowMap(map, source, grid.Width, grid.Height, grid);
             var reached = new HashSet<Vector2Int>(flow.Keys);
+            // Celle idriche prodotte dai convertitori tipizzati
+            foreach (var tkv in TypedConverterSolver.GetFlow(grid, source))
+                if (tkv.Value == EnergyType.Hydraulic) reached.Add(tkv.Key);
             foreach (var cell in reached)
             {
                 if (!map.TryGetValue(cell, out var curCh)) continue;
@@ -150,6 +169,9 @@ public static class CircuitSolver
                 _ => new HashSet<Vector2Int>()
             };
         }
+        // Celle prodotte dai convertitori tipizzati di questo tipo
+        foreach (var tkv in TypedConverterSolver.GetFlow(grid, source))
+            if (tkv.Value == type) simpleReached.Add(tkv.Key);
         foreach (var cell in simpleReached)
         {
             if (!map.TryGetValue(cell, out var curCh)) continue;
@@ -162,6 +184,26 @@ public static class CircuitSolver
                 if (!HasSide(nextCh, type, inS, false)) continue;
                 if (cell.x < next.x || (cell.x == next.x && cell.y < next.y))
                     links.Add((cell, next));
+            }
+        }
+
+        // ── Link cinghia: collega i due ingranaggi (anche in DIAGONALE) ──
+        // I pezzi collegati da cinghia fanno eccezione alla regola di
+        // adiacenza ortogonale: il particle overlay disegna la linea
+        // direttamente tra i due ingranaggi qualunque sia la direzione.
+        if (type == EnergyType.Mechanical)
+        {
+            var beltDraggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
+                UnityEngine.FindObjectsSortMode.None);
+            foreach (var d in beltDraggers)
+            {
+                if (!d.isBelt) continue;
+                if (d.piece.gridPosition.x < 0 || d.beltEndCell.x < 0) continue;
+                var a = d.piece.gridPosition;
+                var b = d.beltEndCell;
+                // Disegna il link solo se almeno uno dei due è energizzato
+                if (!simpleReached.Contains(a) && !simpleReached.Contains(b)) continue;
+                links.Add((a, b));
             }
         }
         return links;

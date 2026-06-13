@@ -9,27 +9,39 @@ public static class BeltSolver
     {
         var draggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
             UnityEngine.FindObjectsSortMode.None);
-        foreach (var d in draggers)
+
+        // Più passate: una catena di cinghie si propaga passo per passo
+        bool changed = true;
+        int safety = 10;
+        while (changed && safety-- > 0)
         {
-            if (!d.isBelt) continue;
-            if (d.piece.gridPosition.x < 0) continue;
-            if (d.beltEndCell.x < 0) continue;
+            changed = false;
+            foreach (var d in draggers)
+            {
+                if (!d.isBelt) continue;
+                if (d.piece.gridPosition.x < 0 || d.beltEndCell.x < 0) continue;
 
-            var gearA = GetGearAt(d.piece.gridPosition, grid);
-            var gearB = GetGearAt(d.beltEndCell, grid);
+                var gearA = GetGearAt(d.piece.gridPosition, grid);
+                var gearB = GetGearAt(d.beltEndCell, grid);
+                if (gearA == null || gearB == null) continue;
 
-            if (gearA == null || gearB == null) continue;
+                bool hasA = states.ContainsKey(gearA.Value);
+                bool hasB = states.ContainsKey(gearB.Value);
+                if (!hasA && !hasB) continue;
 
-            bool hasA = states.ContainsKey(gearA.Value);
-            bool hasB = states.ContainsKey(gearB.Value);
+                // La cinghia forza lo STESSO stato (stesso verso di rotazione)
+                bool shared = hasA ? states[gearA.Value] : states[gearB.Value];
 
-            // Se nessuno dei due è nella mappa, non possiamo determinare lo stato
-            if (!hasA && !hasB) continue;
+                if (!hasA) { states[gearA.Value] = shared; changed = true; }
+                if (!hasB) { states[gearB.Value] = shared; changed = true; }
 
-            // Lo stato condiviso è quello del gear già connesso energeticamente
-            bool shared = hasA ? states[gearA.Value] : states[gearB.Value];
-            states[gearA.Value] = shared;
-            states[gearB.Value] = shared; // aggiunge anche gear non connesso meccanicamente
+                // Entrambi presenti ma diversi → A (anchor) vince su B (end)
+                if (hasA && hasB && states[gearA.Value] != states[gearB.Value])
+                {
+                    states[gearB.Value] = states[gearA.Value];
+                    changed = true;
+                }
+            }
         }
     }
 
@@ -37,20 +49,27 @@ public static class BeltSolver
     {
         var draggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
             UnityEngine.FindObjectsSortMode.None);
-        foreach (var d in draggers)
+
+        bool changed = true;
+        int safety = 10;
+        while (changed && safety-- > 0)
         {
-            if (!d.isBelt) continue;
-            if (d.piece.gridPosition.x < 0 || d.beltEndCell.x < 0) continue;
+            changed = false;
+            foreach (var d in draggers)
+            {
+                if (!d.isBelt) continue;
+                if (d.piece.gridPosition.x < 0 || d.beltEndCell.x < 0) continue;
 
-            var gearA = GetGearAt(d.piece.gridPosition, grid);
-            var gearB = GetGearAt(d.beltEndCell, grid);
-            if (gearA == null || gearB == null) continue;
+                var gearA = GetGearAt(d.piece.gridPosition, grid);
+                var gearB = GetGearAt(d.beltEndCell, grid);
+                if (gearA == null || gearB == null) continue;
 
-            bool aReached = GearIsReached(reached, gearA.Value, grid);
-            bool bReached = GearIsReached(reached, gearB.Value, grid);
+                bool aReached = GearIsReached(reached, gearA.Value, grid);
+                bool bReached = GearIsReached(reached, gearB.Value, grid);
 
-            if (aReached && !bReached) AddGearToReached(reached, gearB.Value, grid);
-            if (bReached && !aReached) AddGearToReached(reached, gearA.Value, grid);
+                if (aReached && !bReached) { AddGearToReached(reached, gearB.Value, grid); changed = true; }
+                if (bReached && !aReached) { AddGearToReached(reached, gearA.Value, grid); changed = true; }
+            }
         }
     }
 
