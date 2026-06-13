@@ -158,7 +158,8 @@ public class CircuitParticleOverlay : MonoBehaviour
         dotIdx = 0;
         lineIdx = 0;
 
-        var source = grid.level.circuitSource;
+        var srcs = grid.level.GetSources();
+        var source = srcs.Count > 0 ? srcs[0].position : grid.level.circuitSource;
 
         // Celle e link per ogni tipo
         var mechReached = CircuitSolver.GetReachedCells(grid, source, EnergyType.Mechanical);

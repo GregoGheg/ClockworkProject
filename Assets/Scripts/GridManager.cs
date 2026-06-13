@@ -8,6 +8,7 @@ public class GridManager : MonoBehaviour
     {
         public Piece occupant;   // pezzo che occupa fisicamente questa cella
         public bool isActive;    // cella visibile e interagibile
+        public bool isSourceOrDest; // blocco sorgente/destinazione: non piazzabile
         // conductIn/Out rimossi — calcolati fresh da CircuitSolver.BuildConductMap
     }
 
@@ -93,11 +94,20 @@ public class GridManager : MonoBehaviour
                 cellViews[x, y] = view;
             }
 
-        // Marca sorgente e destinazione
-        if (IsInBounds(level.circuitSource))
-            cellViews[level.circuitSource.x, level.circuitSource.y].SetAsSource();
-        if (IsInBounds(level.circuitDestination))
-            cellViews[level.circuitDestination.x, level.circuitDestination.y].SetAsDestination();
+        // Marca sorgenti e destinazioni (multi). Sono blocchi conduttori:
+        // occupano spazio, quindi non ci si può piazzare sopra un pezzo.
+        foreach (var s in level.GetSources())
+            if (IsInBounds(s.position))
+            {
+                cellViews[s.position.x, s.position.y].SetAsSource();
+                grid[s.position.x, s.position.y].isSourceOrDest = true;
+            }
+        foreach (var d in level.GetDestinations())
+            if (IsInBounds(d.position))
+            {
+                cellViews[d.position.x, d.position.y].SetAsDestination();
+                grid[d.position.x, d.position.y].isSourceOrDest = true;
+            }
     }
 
     // ── Bounds & query ────────────────────────────────────────────────────
@@ -111,12 +121,12 @@ public class GridManager : MonoBehaviour
 
     public CellState GetCell(Vector2Int v) => GetCell(v.x, v.y);
 
-    // Una cella è libera se è attiva, in bounds, e non ha un occupant fisico
+    // Una cella è libera se è attiva, in bounds, non occupata e non è source/dest
     public bool IsFree(int x, int y)
     {
         if (!IsInBounds(x, y)) return false;
         var c = grid[x, y];
-        return c.isActive && c.occupant == null;
+        return c.isActive && c.occupant == null && !c.isSourceOrDest;
     }
 
     // ── Placement ─────────────────────────────────────────────────────────

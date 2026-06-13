@@ -45,16 +45,38 @@ public static class BeltSolver
         }
     }
 
+    static readonly (Vector2Int dir, PieceData.ConnectionSides outS, PieceData.ConnectionSides inS)[] _dirs =
+    {
+        (Vector2Int.right, PieceData.ConnectionSides.Right, PieceData.ConnectionSides.Left),
+        (Vector2Int.left,  PieceData.ConnectionSides.Left,  PieceData.ConnectionSides.Right),
+        (Vector2Int.up,    PieceData.ConnectionSides.Up,    PieceData.ConnectionSides.Down),
+        (Vector2Int.down,  PieceData.ConnectionSides.Down,  PieceData.ConnectionSides.Up),
+    };
+
+    /// <summary>
+    /// Propaga il "reached" attraverso le cinghie E poi ri-propaga
+    /// ortogonalmente dai gear appena raggiunti. In questo modo un gear
+    /// che riceve energia via cinghia la trasmette ai pezzi adiacenti
+    /// (e così di seguito a tutta la catena), non solo ad altre cinghie.
+    /// </summary>
     public static void PropagateReached(HashSet<Vector2Int> reached, GridManager grid)
     {
+        if (grid == null) return;
+
         var draggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
             UnityEngine.FindObjectsSortMode.None);
 
+        // conductMap con i gear (allSides) per la ri-propagazione ortogonale
+        var map = CircuitSolver.BuildConductMap(grid);
+        MechanicalSolver.AddBeltGearsToMap(map, grid);
+
         bool changed = true;
-        int safety = 10;
+        int safety = 50;
         while (changed && safety-- > 0)
         {
             changed = false;
+
+            // 1) Propaga via cinghia (gear ↔ gear, anche diagonale)
             foreach (var d in draggers)
             {
                 if (!d.isBelt) continue;
@@ -70,7 +92,40 @@ public static class BeltSolver
                 if (aReached && !bReached) { AddGearToReached(reached, gearB.Value, grid); changed = true; }
                 if (bReached && !aReached) { AddGearToReached(reached, gearA.Value, grid); changed = true; }
             }
+
+            // 2) Ri-propaga ORTOGONALMENTE dai gear appena raggiunti.
+            //    Questo è ciò che permette al gear collegato via cinghia di
+            //    trasmettere l'energia ai pezzi fisicamente adiacenti.
+            foreach (var cur in new List<Vector2Int>(reached))
+            {
+                if (!map.TryGetValue(cur, out var curCh)) continue;
+                foreach (var (dir, outS, inS) in _dirs)
+                {
+                    var next = cur + dir;
+                    if (reached.Contains(next)) continue;
+                    if (!map.TryGetValue(next, out var nextCh)) continue;
+                    if (!MechHasSideOrAll(curCh, outS, true)) continue;
+                    if (!MechHasSideOrAll(nextCh, inS, false)) continue;
+                    reached.Add(next);
+                    changed = true;
+                }
+            }
         }
+    }
+
+    static bool MechHasSideOrAll(List<PieceData.EnergyChannel> channels,
+                                  PieceData.ConnectionSides side, bool isOut)
+    {
+        var all = PieceData.ConnectionSides.Up | PieceData.ConnectionSides.Down
+                | PieceData.ConnectionSides.Left | PieceData.ConnectionSides.Right;
+        foreach (var ch in channels)
+        {
+            if (ch.type != EnergyType.Mechanical) continue;
+            if (ch.conductIn == all && ch.conductOut == all) return true; // allSides
+            var s = isOut ? ch.conductOut : ch.conductIn;
+            if ((s & side) != 0) return true;
+        }
+        return false;
     }
 
     static bool GearIsReached(HashSet<Vector2Int> reached, Vector2Int gearPos, GridManager grid)

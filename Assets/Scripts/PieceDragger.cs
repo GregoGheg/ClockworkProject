@@ -245,14 +245,20 @@ public class PieceDragger : MonoBehaviour,
     public static void TryPlaceLastSelected(GridManager grid, Vector2Int coord)
     {
         if (lastInteracted == null) return;
+        // Il pezzo selezionato deve appartenere a QUESTA griglia, altrimenti
+        // un doppio click dopo il cambio livello piazzerebbe un dragger di un
+        // altro livello (pezzo difettoso, cella irremovibile).
+        if (lastInteracted.grid != null && lastInteracted.grid != grid) return;
+
         var data = lastInteracted.piece.data;
 
-        // Trova un dragger dello stesso tipo disponibile nel tray
+        // Trova un dragger dello stesso tipo disponibile nel tray DI QUESTA griglia
         var allDraggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
             UnityEngine.FindObjectsSortMode.None);
         PieceDragger available = null;
         foreach (var d in allDraggers)
         {
+            if (d.grid != grid) continue; // solo dragger di questa griglia
             if (d.piece.data == data && d.piece.gridPosition.x < 0
                 && d.gameObject.activeInHierarchy)
             { available = d; break; }

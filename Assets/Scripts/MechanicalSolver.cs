@@ -176,17 +176,6 @@ public static class MechanicalSolver
 
         if (grid == null) return pieceStates;
 
-        // ── DEBUG cinghia ────────────────────────────────────────────────
-        UnityEngine.Debug.Log($"[MechSolver] pieceStates dopo BFS: {pieceStates.Count} entries: " +
-            string.Join(", ", new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<UnityEngine.Vector2Int, bool>>(pieceStates).ConvertAll(k => $"{k.Key}={k.Value}")));
-        var beltDbg = UnityEngine.Object.FindObjectsByType<PieceDragger>(UnityEngine.FindObjectsSortMode.None);
-        foreach (var dd in beltDbg)
-        {
-            if (!dd.isBelt || dd.piece.gridPosition.x < 0 || dd.beltEndCell.x < 0) continue;
-            var gA2 = GetGearGridPos(dd.piece.gridPosition, grid) ?? dd.piece.gridPosition;
-            var gB2 = GetGearGridPos(dd.beltEndCell, grid) ?? dd.beltEndCell;
-            UnityEngine.Debug.Log($"[MechSolver] cinghia: anchorRaw={dd.piece.gridPosition} endRaw={dd.beltEndCell} gearA={gA2} gearB={gB2} hasA={pieceStates.ContainsKey(gA2)} hasB={pieceStates.ContainsKey(gB2)}");
-        }
         // ── Propagazione via cinghia (anche diagonale) + ortogonale ──────
         // Strategia: le cinghie sono link DIRETTI tra due gridPosition di gear.
         // Non passiamo attraverso celle intermedie: se uno dei due gear ha uno

@@ -97,6 +97,67 @@ public static class CircuitSolver
             && grid.level.DestAccepts(typedType)) return true;
         return false;
     }
+
+    /// <summary>
+    /// Verifica se una specifica destinazione riceve uno dei tipi che accetta,
+    /// da QUALSIASI sorgente del livello (riceve sul proprio blocco).
+    /// </summary>
+    public static bool IsDestinationSatisfied(GridManager grid, LevelData.EnergyDestination destination)
+    {
+        foreach (var src in grid.level.GetSources())
+        {
+            foreach (var type in new[] { EnergyType.Mechanical, EnergyType.Electric, EnergyType.Hydraulic })
+            {
+                if (!src.Emits(type) || !destination.Accepts(type)) continue;
+                var reached = GetReachedCells(grid, src.position, type);
+                if (reached.Contains(destination.position)) return true;
+            }
+
+            // Convertitori generici
+            var gFlow = GetGenericFlow(grid, src.position);
+            if (gFlow.TryGetValue(destination.position, out var gType) && destination.Accepts(gType))
+            {
+                if (gType == EnergyType.Electric)
+                {
+                    var gElecInstab = GetGenericElecInstability(grid, src.position);
+                    if (gElecInstab.TryGetValue(destination.position, out var instab) && instab < 10f) return true;
+                }
+                else return true;
+            }
+
+            // Collettori elettrici
+            if (destination.Accepts(EnergyType.Electric))
+            {
+                var cFlow = GetCollectorFlow(grid, src.position);
+                if (cFlow.ContainsKey(destination.position)) return true;
+            }
+
+            // Convertitori tipizzati
+            var typedFlow = TypedConverterSolver.GetFlow(grid, src.position);
+            if (typedFlow.TryGetValue(destination.position, out var tType) && destination.Accepts(tType))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Restituisce le destinazioni del livello attualmente soddisfatte.</summary>
+    public static List<LevelData.EnergyDestination> GetSatisfiedDestinations(GridManager grid)
+    {
+        var result = new List<LevelData.EnergyDestination>();
+        foreach (var dest in grid.level.GetDestinations())
+            if (IsDestinationSatisfied(grid, dest)) result.Add(dest);
+        return result;
+    }
+
+    /// <summary>Il livello è "risolto" quando TUTTE le sue destinazioni sono soddisfatte.</summary>
+    public static bool SolveAll(GridManager grid)
+    {
+        var dests = grid.level.GetDestinations();
+        if (dests.Count == 0) return false;
+        foreach (var d in dests)
+            if (!IsDestinationSatisfied(grid, d)) return false;
+        return true;
+    }
     public static List<(Vector2Int from, Vector2Int to)> GetEnergyLinks(
         GridManager grid, Vector2Int source, EnergyType type)
     {
@@ -419,6 +480,73 @@ public static class CircuitSolver
                 list.AddRange(cell.energyChannels);
             }
         }
+
+        // ── Sorgenti e destinazioni come BLOCCHI CONDUTTORI ───────────────
+        // Emettono/ricevono su tutti e 4 i lati per i loro tipi di energia,
+        // così passano energia ai pezzi adiacenti.
+        var allSides = PieceData.ConnectionSides.Up | PieceData.ConnectionSides.Down
+                     | PieceData.ConnectionSides.Left | PieceData.ConnectionSides.Right;
+
+        void AddConductor(Vector2Int pos, System.Func<EnergyType, bool> emits)
+        {
+            if (!grid.IsInBounds(pos)) return;
+            if (!map.TryGetValue(pos, out var list))
+            {
+                list = new List<PieceData.EnergyChannel>();
+                map[pos] = list;
+            }
+
+            // Per ogni tipo emesso, costruisci i lati VERSO pezzi adiacenti che
+            // accettano quel tipo. Così la sorgente non "spara" energia (in
+            // particolare acqua come cascata) verso celle vuote.
+            var dirs = new (Vector2Int d, PieceData.ConnectionSides me, PieceData.ConnectionSides other)[]
+            {
+                (Vector2Int.right, PieceData.ConnectionSides.Right, PieceData.ConnectionSides.Left),
+                (Vector2Int.left,  PieceData.ConnectionSides.Left,  PieceData.ConnectionSides.Right),
+                (Vector2Int.up,    PieceData.ConnectionSides.Up,    PieceData.ConnectionSides.Down),
+                (Vector2Int.down,  PieceData.ConnectionSides.Down,  PieceData.ConnectionSides.Up),
+            };
+
+            foreach (var t in new[] { EnergyType.Mechanical, EnergyType.Hydraulic, EnergyType.Electric })
+            {
+                if (!emits(t)) continue;
+
+                var sides = PieceData.ConnectionSides.None;
+                foreach (var (d, me, other) in dirs)
+                {
+                    var nb = pos + d;
+                    if (!grid.IsInBounds(nb)) continue;
+                    var cell = grid.GetCell(nb);
+                    if (cell?.occupant == null) continue; // niente pezzo → niente emissione (no cascata nel vuoto)
+                    // il pezzo adiacente conduce questo tipo? (qualsiasi lato)
+                    bool conducts = false;
+                    foreach (var wc in cell.occupant.WorldCells())
+                    {
+                        if (wc.energyChannels == null) continue;
+                        foreach (var echn in wc.energyChannels)
+                            if (echn.type == t) { conducts = true; break; }
+                        if (conducts) break;
+                    }
+                    if (conducts) sides |= me;
+                }
+
+                if (sides == PieceData.ConnectionSides.None) continue;
+
+                list.Add(new PieceData.EnergyChannel
+                {
+                    type = t,
+                    conductIn = sides,
+                    conductOut = sides,
+                    instability = 0f
+                });
+            }
+        }
+
+        foreach (var s in grid.level.GetSources())
+            AddConductor(s.position, s.Emits);
+        foreach (var d in grid.level.GetDestinations())
+            AddConductor(d.position, d.Accepts);
+
         return map;
     }
     static bool HasSide(List<PieceData.EnergyChannel> ch, EnergyType type,

@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: Robot
   m_EditorClassIdentifier: Assembly-CSharp::WorldLevelConfig
   levels:
-  - levelData: {fileID: 11400000, guid: f2d692be233473a4a9912b0be0b9a21c, type: 2}
+  - levelData: {fileID: 11400000, guid: e6b3ab8dcbd86a64a9ad8f7b503f7260, type: 2}
     mapPosition: {x: 0, y: 0}
-    displayName: Petto
+    displayName: Cuore
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
-  - levelData: {fileID: 11400000, guid: 5ff789c6ff530ec4d9d7c7d20163da0d, type: 2}
-    mapPosition: {x: -1, y: 0}
+  - levelData: {fileID: 11400000, guid: 54df89fc80dff4246adb5abf343d5af8, type: 2}
+    mapPosition: {x: 0, y: 1}
+    displayName: BraccioSin
+    nodeColor: {r: 0, g: 0, b: 0, a: 0}
+  - levelData: {fileID: 11400000, guid: 39576c1e2dafa0642a88b71c237b16f5, type: 2}
+    mapPosition: {x: 0, y: -1}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   globalPieces:

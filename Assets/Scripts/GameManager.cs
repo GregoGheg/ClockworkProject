@@ -398,36 +398,29 @@ public class GameManager : MonoBehaviour
     {
         worldNavigator?.NotifyInventoryChanged();
 
-        // Controlla se il livello è risolto via meccanico (richiede gear ON alla dest)
-        bool solvedViaMech = false;
-        if (currentLevel.DestAccepts(EnergyType.Mechanical))
+        var gearVis = gridManager.GetComponent<GearVisualizer>();
+        bool allSatisfied = true;
+        int destCount = 0;
+
+        foreach (var dest in currentLevel.GetDestinations())
         {
-            var mechReached = CircuitSolver.GetReachedCells(gridManager,
-                currentLevel.circuitSource, EnergyType.Mechanical);
-            if (mechReached.Contains(currentLevel.circuitDestination))
+            destCount++;
+            bool satisfied = CircuitSolver.IsDestinationSatisfied(gridManager, dest);
+
+            // Se la destinazione è alimentata via meccanica, richiede gear ON sul blocco
+            if (satisfied && dest.Accepts(EnergyType.Mechanical) && gearVis != null)
             {
-                var gearVis = gridManager.GetComponent<GearVisualizer>();
-                solvedViaMech = gearVis == null || gearVis.IsDestinationOn(currentLevel.circuitDestination);
+                var mechReached = CircuitSolver.GetReachedCells(
+                    gridManager, FirstSourcePos(), EnergyType.Mechanical);
+                if (mechReached.Contains(dest.position))
+                    satisfied = gearVis.IsDestinationOn(dest.position);
             }
+
+            if (!satisfied) allSatisfied = false;
         }
 
-        // Controlla via altri tipi (nessun check extra)
-        bool solvedViaOther = false;
-        foreach (var type in new[] { EnergyType.Electric, EnergyType.Hydraulic })
-        {
-            if (!currentLevel.DestAccepts(type)) continue;
-            var reached = CircuitSolver.GetReachedCells(gridManager,
-                currentLevel.circuitSource, type);
-            if (reached.Contains(currentLevel.circuitDestination))
-            { solvedViaOther = true; break; }
-        }
-        // Controlla anche via convertitori
-        if (!solvedViaOther)
-            solvedViaOther = CircuitSolver.Solve(gridManager,
-                currentLevel.circuitSource, currentLevel.circuitDestination)
-                && !solvedViaMech;
-
-        bool solved = solvedViaMech || solvedViaOther;
+        // Vittoria del livello = TUTTE le destinazioni soddisfatte
+        bool solved = destCount > 0 && allSatisfied;
 
         if (solved)
         {
@@ -435,15 +428,22 @@ public class GameManager : MonoBehaviour
             onLevelSolved?.Invoke();
         }
 
-        // Controlla bauli — indipendente dalla vittoria
         CheckChests();
+    }
+
+    Vector2Int FirstSourcePos()
+    {
+        var srcs = currentLevel.GetSources();
+        return srcs.Count > 0 ? srcs[0].position : currentLevel.circuitSource;
     }
 
     void CheckChests()
     {
         if (worldNavigator == null || gridManager == null) return;
-        var source = currentLevel.circuitSource;
-        var openChests = ChestSolver.GetOpenChests(gridManager, source);
+
+        var openChests = new HashSet<Vector2Int>();
+        foreach (var src in currentLevel.GetSources())
+            openChests.UnionWith(ChestSolver.GetOpenChests(gridManager, src.position));
 
         foreach (var pos in openChests)
         {

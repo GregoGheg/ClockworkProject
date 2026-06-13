@@ -45,8 +45,10 @@ public class CircuitVisualizer : MonoBehaviour
 
     public void Refresh()
     {
-        var source = grid.level.circuitSource;
-        var dest = grid.level.circuitDestination;
+        var srcs = grid.level.GetSources();
+        var source = srcs.Count > 0 ? srcs[0].position : grid.level.circuitSource;
+        var dest = grid.level.GetDestinations().Count > 0
+            ? grid.level.GetDestinations()[0].position : grid.level.circuitDestination;
         var map = CircuitSolver.BuildConductMap(grid);
 
         // Calcola flussi
@@ -73,8 +75,19 @@ public class CircuitVisualizer : MonoBehaviour
                 var view = GetCellView(x, y);
                 if (view == null) continue;
 
-                if (coord == source) { view.SetFlowColor(colorSource); continue; }
-                if (coord == dest) { view.SetFlowColor(solved ? colorDestReached : colorDestWaiting); continue; }
+                var coordIsSource = grid.level.IsSourceCell(coord);
+                var coordIsDest = grid.level.IsDestCell(coord);
+                if (coordIsSource) { view.SetFlowColor(colorSource); continue; }
+                if (coordIsDest)
+                {
+                    // Stato per-destinazione
+                    bool destOk = false;
+                    foreach (var dd in grid.level.GetDestinations())
+                        if (dd.position == coord)
+                        { destOk = CircuitSolver.IsDestinationSatisfied(grid, dd); break; }
+                    view.SetFlowColor(destOk ? colorDestReached : colorDestWaiting);
+                    continue;
+                }
 
                 bool inMech = mechReached.Contains(coord);
                 bool inElec = elecInstab.ContainsKey(coord);

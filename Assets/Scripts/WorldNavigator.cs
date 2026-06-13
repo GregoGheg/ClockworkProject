@@ -140,10 +140,15 @@ public class WorldNavigator : MonoBehaviour
         bool isGoingBack = navigationParent.ContainsKey(currentIndex)
                         && navigationParent[currentIndex] == index;
 
-        // Indietro: sempre libero. Avanti: solo se il circuito è attualmente attivo
+        // Indietro: sempre libero.
+        // Avanti: permesso se la zona target è sbloccata dalla SUA destinazione
+        // (indipendente dalle altre uscite), con fallback al circuito completo.
         if (!isGoingBack)
         {
-            if (!levelViews[currentIndex].IsCurrentlySolved()) return;
+            var targetMapPos = config.levels[index].mapPosition;
+            bool zoneUnlocked = IsZoneUnlocked(targetMapPos);
+            bool fullySolved = levelViews[currentIndex].IsCurrentlySolved();
+            if (!zoneUnlocked && !fullySolved) return;
         }
 
         // Registra nel tree: se il livello target non ha ancora un parent, impostalo
@@ -210,6 +215,52 @@ public class WorldNavigator : MonoBehaviour
     {
         saveData[index].solved = true;
         UpdateUI();
+    }
+
+    // ── Zone sbloccate dalle destinazioni di energia ──────────────────────
+    // Una destinazione soddisfatta sblocca l'accesso al livello la cui
+    // mapPosition è dichiarata nel LevelData (EnergyDestination.unlocksLevelAtMapPosition).
+    readonly HashSet<Vector2Int> unlockedZones = new();
+
+    /// <summary>Chiamato da GameManager quando una destinazione è soddisfatta.</summary>
+    public void UnlockZone(Vector2Int mapPosition)
+    {
+        if (mapPosition == new Vector2Int(9999, 9999)) return;
+        unlockedZones.Add(mapPosition);
+    }
+
+    /// <summary>
+    /// Una zona è accessibile SOLO se, in questo momento, una destinazione del
+    /// livello corrente che punta a quella mapPosition è soddisfatta.
+    /// Check live e indipendente per ogni uscita: se il percorso si disattiva,
+    /// la freccia sparisce; ogni uscita si sblocca da sola senza le altre.
+    /// </summary>
+    public bool IsZoneUnlocked(Vector2Int mapPosition)
+    {
+        var grid = CurrentGrid();
+        if (grid == null || grid.level == null) return false;
+
+        foreach (var d in grid.level.GetDestinations())
+        {
+            if (!d.HasUnlock) continue;
+            if (d.unlocksLevelAtMapPosition != mapPosition) continue;
+            if (CircuitSolver.IsDestinationSatisfied(grid, d)) return true;
+        }
+        return false;
+    }
+
+    GridManager CurrentGrid()
+    {
+        if (levelViews == null || currentIndex < 0 || currentIndex >= levelViews.Count) return null;
+        return levelViews[currentIndex].GetComponentInChildren<GridManager>(true);
+    }
+
+    /// <summary>Indice del livello con quella mapPosition, o -1.</summary>
+    public int IndexOfMapPosition(Vector2Int mapPosition)
+    {
+        for (int i = 0; i < config.levels.Length; i++)
+            if (config.levels[i].mapPosition == mapPosition) return i;
+        return -1;
     }
 
     void UpdateUI()

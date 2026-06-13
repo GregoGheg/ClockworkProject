@@ -401,6 +401,7 @@ GameObject:
   - component: {fileID: 6828489544769800334}
   - component: {fileID: 1447162085363473433}
   - component: {fileID: 997702439363266904}
+  - component: {fileID: 8555392449990732515}
   - component: {fileID: 1635245976733835822}
   - component: {fileID: 982569882616561725}
   m_Layer: 5
@@ -506,6 +507,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd502492186301c468aa8625c8d236a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ElectricDebugger
+--- !u!114 &8555392449990732515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3233805319281099195}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0d057367d47f94499737eaf6ad9ccc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SourceDebugger
 --- !u!114 &1635245976733835822
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -173,11 +173,7 @@ public class LevelViewController : MonoBehaviour
     public bool IsCurrentlySolved()
     {
         if (gameManager?.gridManager == null) return false;
-        var gm = gameManager;
-        return CircuitSolver.Solve(
-            gm.gridManager,
-            gm.currentLevel.circuitSource,
-            gm.currentLevel.circuitDestination);
+        return CircuitSolver.SolveAll(gameManager.gridManager);
     }
 
 }

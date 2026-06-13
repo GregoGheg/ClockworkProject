@@ -47,7 +47,9 @@ public class NavigationButtons : MonoBehaviour
             bool isBack = navigator.IsParent(i, cur);
             if (isBack) return true;
 
-            // Avanti = visibile solo se il circuito è attualmente attivo
+            // Avanti = visibile se la zona è stata sbloccata da una destinazione
+            // soddisfatta, oppure (fallback legacy) se il circuito è attivo ora.
+            if (navigator.IsZoneUnlocked(targetPos)) return true;
             return currentlyActive;
         }
         return false;
