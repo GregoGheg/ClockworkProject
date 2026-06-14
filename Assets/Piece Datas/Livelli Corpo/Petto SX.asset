@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 584b8f60156c9c145bf0c90766bdcb80, type: 3}
   m_Name: Petto SX
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
-  gridWidth: 15
+  gridWidth: 12
   gridHeight: 16
   inactiveCells:
   - {x: 0, y: 0}
@@ -27,90 +27,58 @@ MonoBehaviour:
   - {x: 0, y: 9}
   - {x: 0, y: 10}
   - {x: 0, y: 11}
-  - {x: 1, y: 11}
   - {x: 1, y: 10}
-  - {x: 1, y: 9}
-  - {x: 1, y: 8}
-  - {x: 1, y: 7}
-  - {x: 1, y: 6}
-  - {x: 1, y: 5}
-  - {x: 1, y: 4}
-  - {x: 1, y: 3}
-  - {x: 1, y: 2}
-  - {x: 1, y: 1}
+  - {x: 1, y: 11}
   - {x: 1, y: 0}
-  - {x: 2, y: 0}
-  - {x: 2, y: 1}
-  - {x: 2, y: 2}
+  - {x: 1, y: 1}
+  - {x: 1, y: 2}
+  - {x: 1, y: 3}
+  - {x: 1, y: 4}
+  - {x: 1, y: 5}
+  - {x: 1, y: 6}
+  - {x: 1, y: 7}
+  - {x: 1, y: 8}
+  - {x: 1, y: 9}
   - {x: 2, y: 3}
   - {x: 2, y: 4}
   - {x: 2, y: 5}
   - {x: 2, y: 6}
   - {x: 2, y: 7}
-  - {x: 2, y: 8}
-  - {x: 2, y: 9}
-  - {x: 2, y: 10}
-  - {x: 2, y: 11}
-  - {x: 3, y: 0}
-  - {x: 3, y: 1}
-  - {x: 3, y: 2}
-  - {x: 3, y: 3}
-  - {x: 3, y: 4}
-  - {x: 3, y: 5}
-  - {x: 3, y: 6}
-  - {x: 3, y: 7}
-  - {x: 3, y: 8}
-  - {x: 3, y: 9}
-  - {x: 3, y: 10}
-  - {x: 3, y: 11}
-  - {x: 4, y: 0}
-  - {x: 4, y: 1}
-  - {x: 4, y: 2}
-  - {x: 4, y: 3}
-  - {x: 4, y: 4}
-  - {x: 4, y: 5}
-  - {x: 4, y: 6}
-  - {x: 4, y: 7}
-  - {x: 4, y: 8}
-  - {x: 4, y: 9}
-  - {x: 4, y: 10}
-  - {x: 4, y: 11}
-  - {x: 5, y: 3}
-  - {x: 5, y: 4}
-  - {x: 5, y: 5}
-  - {x: 5, y: 6}
-  - {x: 5, y: 7}
-  - {x: 7, y: 13}
-  - {x: 7, y: 14}
-  - {x: 8, y: 13}
-  - {x: 8, y: 14}
-  - {x: 9, y: 2}
-  - {x: 9, y: 3}
-  - {x: 9, y: 4}
-  - {x: 9, y: 5}
-  - {x: 9, y: 6}
-  - {x: 10, y: 0}
-  - {x: 12, y: 12}
-  - {x: 12, y: 13}
-  - {x: 12, y: 14}
-  - {x: 12, y: 15}
-  - {x: 13, y: 3}
-  - {x: 13, y: 5}
-  - {x: 13, y: 7}
-  - {x: 13, y: 12}
-  - {x: 13, y: 13}
-  - {x: 13, y: 14}
-  - {x: 13, y: 15}
-  - {x: 14, y: 3}
-  - {x: 14, y: 5}
-  - {x: 14, y: 7}
-  - {x: 14, y: 12}
-  - {x: 14, y: 13}
-  - {x: 14, y: 14}
-  - {x: 14, y: 15}
-  circuitSource: {x: 2, y: 12}
-  circuitDestination: {x: 13, y: 0}
-  sourceEnergyTypes: 00000000010000000200000003000000
-  destEnergyTypes: 00000000010000000200000003000000
+  - {x: 6, y: 3}
+  - {x: 6, y: 4}
+  - {x: 6, y: 5}
+  - {x: 6, y: 6}
+  - {x: 6, y: 13}
+  - {x: 6, y: 14}
+  - {x: 5, y: 14}
+  - {x: 5, y: 13}
+  - {x: 7, y: 0}
+  - {x: 10, y: 12}
+  - {x: 10, y: 13}
+  - {x: 10, y: 14}
+  - {x: 10, y: 15}
+  - {x: 11, y: 15}
+  - {x: 11, y: 14}
+  - {x: 11, y: 13}
+  - {x: 11, y: 12}
+  circuitSource: {x: 0, y: 0}
+  circuitDestination: {x: 0, y: 0}
+  sourceEnergyTypes: 
+  destEnergyTypes: 
+  sources:
+  - position: {x: 0, y: 12}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 4, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
+  - position: {x: 10, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
+  - position: {x: 11, y: 11}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 60
+  gridOffset: {x: 0, y: 0}
+  presetPieces: []

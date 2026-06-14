@@ -13,23 +13,30 @@ MonoBehaviour:
   m_Name: Spalla DX
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   gridWidth: 8
-  gridHeight: 12
+  gridHeight: 10
   inactiveCells:
-  - {x: 0, y: 0}
-  - {x: 0, y: 7}
-  - {x: 0, y: 11}
-  - {x: 1, y: 0}
-  - {x: 1, y: 7}
-  - {x: 1, y: 7}
-  - {x: 3, y: 4}
-  - {x: 5, y: 4}
-  - {x: 5, y: 11}
-  - {x: 6, y: 11}
-  - {x: 7, y: 11}
-  - {x: 7, y: 4}
-  circuitSource: {x: 7, y: 10}
-  circuitDestination: {x: 0, y: 3}
-  sourceEnergyTypes: 00000000010000000200000003000000
-  destEnergyTypes: 00000000010000000200000003000000
+  - {x: 0, y: 5}
+  - {x: 0, y: 9}
+  - {x: 1, y: 5}
+  - {x: 2, y: 5}
+  - {x: 3, y: 2}
+  - {x: 5, y: 2}
+  - {x: 7, y: 2}
+  - {x: 7, y: 9}
+  - {x: 6, y: 9}
+  - {x: 5, y: 9}
+  circuitSource: {x: 0, y: 0}
+  circuitDestination: {x: 0, y: 0}
+  sourceEnergyTypes: 
+  destEnergyTypes: 
+  sources:
+  - position: {x: 7, y: 8}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 0, y: 1}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 80
+  gridOffset: {x: 0, y: 0}
+  presetPieces: []

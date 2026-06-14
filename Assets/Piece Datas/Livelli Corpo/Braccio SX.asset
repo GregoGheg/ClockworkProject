@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 584b8f60156c9c145bf0c90766bdcb80, type: 3}
   m_Name: Braccio SX
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
-  gridWidth: 7
+  gridWidth: 6
   gridHeight: 21
   inactiveCells:
   - {x: 0, y: 0}
@@ -34,48 +34,39 @@ MonoBehaviour:
   - {x: 1, y: 0}
   - {x: 1, y: 1}
   - {x: 1, y: 2}
-  - {x: 1, y: 3}
-  - {x: 1, y: 4}
-  - {x: 1, y: 5}
-  - {x: 1, y: 6}
-  - {x: 1, y: 7}
-  - {x: 1, y: 8}
-  - {x: 1, y: 9}
-  - {x: 1, y: 10}
-  - {x: 1, y: 11}
-  - {x: 1, y: 12}
-  - {x: 1, y: 13}
   - {x: 1, y: 14}
   - {x: 1, y: 15}
+  - {x: 2, y: 15}
+  - {x: 2, y: 14}
   - {x: 2, y: 0}
   - {x: 2, y: 1}
   - {x: 2, y: 2}
-  - {x: 2, y: 14}
-  - {x: 2, y: 15}
-  - {x: 3, y: 15}
-  - {x: 3, y: 14}
-  - {x: 3, y: 0}
-  - {x: 3, y: 1}
-  - {x: 3, y: 2}
   - {x: 3, y: 8}
-  - {x: 3, y: 10}
-  - {x: 3, y: 11}
-  - {x: 3, y: 12}
+  - {x: 4, y: 3}
+  - {x: 4, y: 4}
+  - {x: 4, y: 5}
   - {x: 4, y: 8}
+  - {x: 4, y: 9}
+  - {x: 4, y: 10}
   - {x: 5, y: 3}
-  - {x: 5, y: 4}
-  - {x: 5, y: 5}
-  - {x: 5, y: 8}
-  - {x: 5, y: 9}
-  - {x: 5, y: 10}
-  - {x: 5, y: 11}
-  - {x: 6, y: 3}
-  - {x: 6, y: 14}
-  - {x: 6, y: 19}
-  - {x: 6, y: 20}
-  circuitSource: {x: 0, y: 20}
-  circuitDestination: {x: 4, y: 0}
-  sourceEnergyTypes: 00000000010000000200000003000000
-  destEnergyTypes: 00000000010000000200000003000000
+  - {x: 5, y: 14}
+  - {x: 5, y: 19}
+  - {x: 5, y: 20}
+  circuitSource: {x: 0, y: 0}
+  circuitDestination: {x: 0, y: 0}
+  sourceEnergyTypes: 
+  destEnergyTypes: 
+  sources:
+  - position: {x: 0, y: 20}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 1, y: 3}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
+  - position: {x: 3, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 50
+  gridOffset: {x: 0, y: 0}
+  presetPieces: []

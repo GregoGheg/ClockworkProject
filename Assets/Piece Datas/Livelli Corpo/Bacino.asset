@@ -19,5 +19,19 @@ MonoBehaviour:
   circuitDestination: {x: 0, y: 0}
   sourceEnergyTypes: 
   destEnergyTypes: 
+  sources:
+  - position: {x: 0, y: 6}
+    energyTypes: 03000000
+  - position: {x: 5, y: 6}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 0, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
+  - position: {x: 0, y: 6}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 100
+  gridOffset: {x: 0, y: 0}
+  presetPieces: []

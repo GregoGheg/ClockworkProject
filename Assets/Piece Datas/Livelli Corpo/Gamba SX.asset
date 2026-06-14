@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Gamba SX
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   gridWidth: 6
-  gridHeight: 18
+  gridHeight: 16
   inactiveCells:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
@@ -23,19 +23,15 @@ MonoBehaviour:
   - {x: 2, y: 3}
   - {x: 2, y: 4}
   - {x: 2, y: 5}
-  - {x: 2, y: 6}
-  - {x: 2, y: 7}
+  - {x: 2, y: 8}
+  - {x: 2, y: 9}
   - {x: 2, y: 10}
   - {x: 2, y: 11}
   - {x: 2, y: 12}
   - {x: 2, y: 13}
   - {x: 2, y: 14}
-  - {x: 2, y: 15}
-  - {x: 2, y: 16}
   - {x: 4, y: 9}
   - {x: 4, y: 10}
-  - {x: 4, y: 11}
-  - {x: 4, y: 12}
   - {x: 5, y: 5}
   - {x: 5, y: 6}
   - {x: 5, y: 7}
@@ -47,11 +43,21 @@ MonoBehaviour:
   - {x: 5, y: 13}
   - {x: 5, y: 14}
   - {x: 5, y: 15}
-  - {x: 5, y: 16}
-  - {x: 5, y: 17}
-  circuitSource: {x: 2, y: 17}
-  circuitDestination: {x: 5, y: 0}
-  sourceEnergyTypes: 00000000010000000200000003000000
-  destEnergyTypes: 00000000010000000200000003000000
+  circuitSource: {x: 0, y: 0}
+  circuitDestination: {x: 0, y: 0}
+  sourceEnergyTypes: 
+  destEnergyTypes: 
+  sources:
+  - position: {x: 2, y: 15}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 1, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
+  - position: {x: 5, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 55
+  gridOffset: {x: 0, y: 0}
+  presetPieces: []

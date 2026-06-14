@@ -60,9 +60,24 @@ MonoBehaviour:
   - {x: 9, y: 11}
   - {x: 10, y: 0}
   - {x: 10, y: 11}
-  circuitSource: {x: 0, y: 11}
-  circuitDestination: {x: 10, y: 10}
-  sourceEnergyTypes: 00000000010000000200000003000000
-  destEnergyTypes: 00000000010000000200000003000000
+  circuitSource: {x: 0, y: 0}
+  circuitDestination: {x: 0, y: 0}
+  sourceEnergyTypes: 
+  destEnergyTypes: 
+  sources:
+  - position: {x: 0, y: 11}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 10, y: 10}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 80
+  gridOffset: {x: 0, y: 0}
+  presetPieces:
+  - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
+    position: {x: 4, y: 6}
+    rotation: 0
+    runtimeLength: 0
+    locked: 1
+    beltEnd: {x: 0, y: 0}

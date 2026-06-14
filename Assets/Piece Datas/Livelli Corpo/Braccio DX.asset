@@ -12,29 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 584b8f60156c9c145bf0c90766bdcb80, type: 3}
   m_Name: Braccio DX
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
-  gridWidth: 14
-  gridHeight: 20
+  gridWidth: 10
+  gridHeight: 19
   inactiveCells:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
   - {x: 0, y: 2}
-  - {x: 0, y: 3}
-  - {x: 1, y: 0}
-  - {x: 1, y: 1}
   - {x: 1, y: 2}
-  - {x: 1, y: 3}
-  - {x: 2, y: 3}
-  - {x: 2, y: 2}
-  - {x: 2, y: 1}
+  - {x: 1, y: 1}
+  - {x: 1, y: 0}
   - {x: 2, y: 0}
-  - {x: 3, y: 0}
-  - {x: 3, y: 1}
+  - {x: 2, y: 1}
+  - {x: 2, y: 2}
   - {x: 3, y: 2}
-  - {x: 3, y: 3}
+  - {x: 3, y: 1}
+  - {x: 3, y: 0}
   - {x: 4, y: 0}
   - {x: 4, y: 1}
   - {x: 4, y: 2}
-  - {x: 4, y: 3}
+  - {x: 4, y: 2}
+  - {x: 1, y: 4}
   - {x: 1, y: 5}
   - {x: 1, y: 6}
   - {x: 1, y: 7}
@@ -43,32 +40,31 @@ MonoBehaviour:
   - {x: 1, y: 10}
   - {x: 1, y: 11}
   - {x: 1, y: 12}
-  - {x: 1, y: 18}
+  - {x: 1, y: 17}
   - {x: 2, y: 9}
   - {x: 2, y: 10}
   - {x: 2, y: 11}
   - {x: 2, y: 12}
-  - {x: 2, y: 17}
-  - {x: 3, y: 16}
+  - {x: 2, y: 16}
+  - {x: 3, y: 15}
   - {x: 4, y: 6}
   - {x: 4, y: 7}
   - {x: 4, y: 8}
   - {x: 4, y: 9}
   - {x: 4, y: 10}
   - {x: 4, y: 11}
-  - {x: 4, y: 15}
   - {x: 5, y: 6}
   - {x: 5, y: 7}
   - {x: 5, y: 8}
   - {x: 5, y: 9}
   - {x: 5, y: 10}
   - {x: 5, y: 11}
+  - {x: 6, y: 11}
   - {x: 6, y: 6}
   - {x: 6, y: 7}
   - {x: 6, y: 8}
   - {x: 6, y: 9}
   - {x: 6, y: 10}
-  - {x: 6, y: 11}
   - {x: 7, y: 6}
   - {x: 7, y: 7}
   - {x: 7, y: 8}
@@ -89,7 +85,7 @@ MonoBehaviour:
   - {x: 8, y: 16}
   - {x: 8, y: 17}
   - {x: 8, y: 18}
-  - {x: 8, y: 19}
+  - {x: 9, y: 18}
   - {x: 9, y: 5}
   - {x: 9, y: 6}
   - {x: 9, y: 7}
@@ -103,71 +99,27 @@ MonoBehaviour:
   - {x: 9, y: 15}
   - {x: 9, y: 16}
   - {x: 9, y: 17}
-  - {x: 9, y: 18}
-  - {x: 9, y: 19}
-  - {x: 10, y: 5}
-  - {x: 10, y: 6}
-  - {x: 10, y: 7}
-  - {x: 10, y: 8}
-  - {x: 10, y: 9}
-  - {x: 10, y: 10}
-  - {x: 10, y: 11}
-  - {x: 10, y: 12}
-  - {x: 10, y: 13}
-  - {x: 10, y: 14}
-  - {x: 10, y: 15}
-  - {x: 10, y: 16}
-  - {x: 10, y: 17}
-  - {x: 10, y: 18}
-  - {x: 10, y: 19}
-  - {x: 11, y: 5}
-  - {x: 11, y: 6}
-  - {x: 11, y: 7}
-  - {x: 11, y: 8}
-  - {x: 11, y: 9}
-  - {x: 11, y: 10}
-  - {x: 11, y: 11}
-  - {x: 11, y: 12}
-  - {x: 11, y: 13}
-  - {x: 11, y: 14}
-  - {x: 11, y: 15}
-  - {x: 11, y: 16}
-  - {x: 11, y: 17}
-  - {x: 11, y: 18}
-  - {x: 11, y: 19}
-  - {x: 12, y: 5}
-  - {x: 12, y: 6}
-  - {x: 12, y: 7}
-  - {x: 12, y: 8}
-  - {x: 12, y: 9}
-  - {x: 12, y: 10}
-  - {x: 12, y: 11}
-  - {x: 12, y: 12}
-  - {x: 12, y: 13}
-  - {x: 12, y: 14}
-  - {x: 12, y: 15}
-  - {x: 12, y: 16}
-  - {x: 12, y: 17}
-  - {x: 12, y: 18}
-  - {x: 12, y: 19}
-  - {x: 13, y: 5}
-  - {x: 13, y: 6}
-  - {x: 13, y: 7}
-  - {x: 13, y: 8}
-  - {x: 13, y: 9}
-  - {x: 13, y: 10}
-  - {x: 13, y: 11}
-  - {x: 13, y: 12}
-  - {x: 13, y: 13}
-  - {x: 13, y: 14}
-  - {x: 13, y: 15}
-  - {x: 13, y: 16}
-  - {x: 13, y: 17}
-  - {x: 13, y: 18}
-  - {x: 13, y: 19}
-  circuitSource: {x: 7, y: 13}
-  circuitDestination: {x: 13, y: 0}
-  sourceEnergyTypes: 00000000010000000200000003000000
-  destEnergyTypes: 00000000010000000200000003000000
+  circuitSource: {x: 0, y: 0}
+  circuitDestination: {x: 0, y: 0}
+  sourceEnergyTypes: 
+  destEnergyTypes: 
+  sources:
+  - position: {x: 7, y: 13}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 9, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
+  - position: {x: 9, y: 4}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 53
+  gridOffset: {x: 0, y: 0}
+  presetPieces:
+  - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
+    position: {x: 2, y: 6}
+    rotation: 0
+    runtimeLength: 0
+    locked: 1
+    beltEnd: {x: 0, y: 0}

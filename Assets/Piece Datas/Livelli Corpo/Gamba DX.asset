@@ -13,20 +13,37 @@ MonoBehaviour:
   m_Name: Gamba DX
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   gridWidth: 5
-  gridHeight: 17
+  gridHeight: 15
   inactiveCells:
   - {x: 0, y: 1}
   - {x: 0, y: 2}
   - {x: 0, y: 3}
   - {x: 3, y: 0}
-  - {x: 3, y: 13}
-  - {x: 3, y: 13}
+  - {x: 3, y: 11}
+  - {x: 4, y: 11}
+  - {x: 4, y: 12}
   - {x: 4, y: 13}
-  - {x: 4, y: 14}
-  - {x: 4, y: 15}
-  circuitSource: {x: 0, y: 16}
-  circuitDestination: {x: 4, y: 0}
-  sourceEnergyTypes: 00000000010000000200000003000000
-  destEnergyTypes: 00000000010000000200000003000000
+  circuitSource: {x: 0, y: 0}
+  circuitDestination: {x: 0, y: 0}
+  sourceEnergyTypes: 
+  destEnergyTypes: 
+  sources:
+  - position: {x: 0, y: 14}
+    energyTypes: 03000000
+  destinations:
+  - position: {x: 0, y: 0}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
+  - position: {x: 0, y: 4}
+    energyTypes: 03000000
+    unlocksLevelAtMapPosition: {x: 0, y: 0}
   nodeSpacing: 1200
   cellSize: 60
+  gridOffset: {x: 0, y: 0}
+  presetPieces:
+  - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
+    position: {x: 4, y: 10}
+    rotation: 0
+    runtimeLength: 0
+    locked: 1
+    beltEnd: {x: 0, y: 0}
