@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 80604588385729822}
   - component: {fileID: 2839376445973033052}
   - component: {fileID: 4202659177183573223}
+  - component: {fileID: 6691594519848928869}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -68,3 +69,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e4eea005dd8b384590d11dbe5ef1635, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelPresetSpawner
+--- !u!114 &6691594519848928869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6433929715410587924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b38e57cfe9f69a94db150d28828869df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GridNavArrows
+  arrowButtonPrefab: {fileID: 7342119617197788480, guid: 6e9778ed13583544d8e093852d96991b, type: 3}
+  scale: 0.8
+  rotateForward: 1
+  rotateBack: 1
+  refreshInterval: 0.3

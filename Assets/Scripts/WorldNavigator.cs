@@ -174,6 +174,14 @@ public class WorldNavigator : MonoBehaviour
         return false;
     }
 
+    /// <summary>Torna al livello parent (sempre permesso se visitato).</summary>
+    public void NavigateBack()
+    {
+        if (isTransitioning) return;
+        int parent = GetReturnLevelIndex();
+        if (parent >= 0) NavigateTo(parent);
+    }
+
     public void NavigateTo(int index)
     {
         if (index < 0 || index >= config.levels.Length) return;
@@ -358,4 +366,36 @@ public class WorldNavigator : MonoBehaviour
     /// <summary>Ritorna true se candidateParent è il parent di child nel tree di navigazione.</summary>
     public bool IsParent(int candidateParent, int child)
         => navigationParent.ContainsKey(child) && navigationParent[child] == candidateParent;
+
+    /// <summary>
+    /// Indice del livello a cui si può TORNARE dal livello corrente:
+    /// è il parent nel tree di navigazione, accessibile se è stato visitato.
+    /// Restituisce -1 se non c'è un ritorno disponibile.
+    /// </summary>
+    public int GetReturnLevelIndex()
+    {
+        if (!navigationParent.ContainsKey(currentIndex)) return -1;
+        int parent = navigationParent[currentIndex];
+        if (parent < 0 || parent >= config.levels.Length) return -1;
+        // Si può sempre tornare a un livello già visitato (tipicamente già completato)
+        if (!visited.Contains(parent)) return -1;
+        return parent;
+    }
+
+    /// <summary>
+    /// Direzione cardinale dal livello corrente verso il livello di ritorno,
+    /// in base alle mapPosition. Zero se non allineati o nessun ritorno.
+    /// </summary>
+    public Vector2Int GetReturnDirection()
+    {
+        int parent = GetReturnLevelIndex();
+        if (parent < 0) return Vector2Int.zero;
+        var delta = config.levels[parent].mapPosition - config.levels[currentIndex].mapPosition;
+        if (delta.x != 0 && delta.y == 0) return new Vector2Int(delta.x > 0 ? 1 : -1, 0);
+        if (delta.y != 0 && delta.x == 0) return new Vector2Int(0, delta.y > 0 ? 1 : -1);
+        // Non allineato cardinalmente: scegli l'asse dominante
+        if (Mathf.Abs(delta.x) >= Mathf.Abs(delta.y))
+            return new Vector2Int(delta.x > 0 ? 1 : -1, 0);
+        return new Vector2Int(0, delta.y > 0 ? 1 : -1);
+    }
 }

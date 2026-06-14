@@ -267,6 +267,21 @@ public class PieceDragger : MonoBehaviour,
 
         var data = lastInteracted.piece.data;
 
+        // ── Controllo limite pool globale ────────────────────────────────
+        // Anche se esistono dragger fisici non piazzati nel tray, non si può
+        // superare la quantità globale disponibile (GetAvailable).
+        var gmCheck = grid.GetComponentInParent<GameManager>();
+        if (gmCheck == null)
+        {
+            foreach (var g in UnityEngine.Object.FindObjectsByType<GameManager>(
+                UnityEngine.FindObjectsSortMode.None))
+                if (g.gridManager == grid) { gmCheck = g; break; }
+        }
+        if (gmCheck != null && gmCheck.worldNavigator != null)
+        {
+            if (gmCheck.worldNavigator.GetAvailable(data) <= 0) return; // pool esaurito
+        }
+
         // Trova un dragger dello stesso tipo disponibile nel tray DI QUESTA griglia
         var allDraggers = UnityEngine.Object.FindObjectsByType<PieceDragger>(
             UnityEngine.FindObjectsSortMode.None);
