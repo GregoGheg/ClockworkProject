@@ -30,17 +30,52 @@ using UnityEngine.UI;
 [RequireComponent(typeof(GameManager))]
 public class LevelPresetSpawner : MonoBehaviour
 {
-    [Tooltip("Frame di attesa prima dello spawn (lascia che griglia e tray si inizializzino)")]
-    public int framesToWait = 3;
-
     GameManager gm;
+    bool spawned = false;
 
     void Awake() => gm = GetComponent<GameManager>();
 
+    // Fallback: se per qualche motivo SpawnNow non è stato chiamato
+    // esplicitamente da LevelViewController, prova comunque allo Start.
     IEnumerator Start()
     {
-        for (int i = 0; i < framesToWait; i++) yield return null;
+        yield return null;
+        yield return null;
+        if (!spawned) SpawnNow();
+    }
+
+    /// <summary>
+    /// Spawna i preset. Idempotente: chiamabile più volte, esegue una sola volta.
+    /// Se la griglia non è ancora pronta, ritenta al frame successivo.
+    /// </summary>
+    public void SpawnNow()
+    {
+        if (spawned) return;
+        if (gm == null) gm = GetComponent<GameManager>();
+
+        // La griglia deve essere inizializzata (Awake girato, celle allocate)
+        if (gm == null || gm.gridManager == null || !gm.gridManager.IsReady)
+        {
+            if (gameObject.activeInHierarchy)
+                StartCoroutine(SpawnWhenReady());
+            return;
+        }
         SpawnPresets();
+    }
+
+    IEnumerator SpawnWhenReady()
+    {
+        int safety = 120;
+        while (safety-- > 0)
+        {
+            if (gm != null && gm.gridManager != null && gm.gridManager.IsReady)
+            {
+                SpawnPresets();
+                yield break;
+            }
+            yield return null;
+        }
+        Debug.LogWarning("[LevelPresetSpawner] Griglia mai pronta — preset non spawnati.");
     }
 
     void SpawnPresets()
@@ -48,13 +83,24 @@ public class LevelPresetSpawner : MonoBehaviour
         var level = gm != null ? gm.currentLevel : null;
         var grid = gm != null ? gm.gridManager : null;
 
-        if (level == null || grid == null) return;
-        if (level.presetPieces == null || level.presetPieces.Count == 0) return;
+        if (level == null || grid == null)
+        {
+            Debug.LogWarning($"[LevelPresetSpawner] level o grid null (level={level}, grid={grid}) — preset non spawnati. Verrà ritentato.");
+            return;
+        }
+        if (level.presetPieces == null || level.presetPieces.Count == 0)
+        {
+            spawned = true; // niente da fare, ma marca come fatto
+            return;
+        }
         if (gm.piecePrefab == null)
         {
             Debug.LogWarning("[LevelPresetSpawner] GameManager.piecePrefab non assegnato — impossibile spawnare i preset.");
             return;
         }
+
+        spawned = true;
+        Debug.Log($"[LevelPresetSpawner] Spawno {level.presetPieces.Count} preset per il livello.");
 
         foreach (var preset in level.presetPieces)
         {

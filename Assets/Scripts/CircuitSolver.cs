@@ -465,6 +465,9 @@ public static class CircuitSolver
     public static Dictionary<Vector2Int, List<PieceData.EnergyChannel>> BuildConductMap(GridManager grid)
     {
         var map = new Dictionary<Vector2Int, List<PieceData.EnergyChannel>>();
+        // Griglia non ancora inizializzata (es. livello pre-caricato disattivato):
+        // restituisci mappa vuota invece di lanciare NullReference.
+        if (grid == null || grid.level == null || !grid.IsReady) return map;
         foreach (var piece in grid.PlacedPieces)
         {
             if (piece.gridPosition.x < 0) continue;

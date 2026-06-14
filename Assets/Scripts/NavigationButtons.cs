@@ -39,19 +39,23 @@ public class NavigationButtons : MonoBehaviour
         int cur = navigator.CurrentIndex;
         var targetPos = curPos + dir;
 
+        // 1) Livello esattamente adiacente in questa direzione
         for (int i = 0; i < navigator.config.levels.Length; i++)
         {
             if (navigator.config.levels[i].mapPosition != targetPos) continue;
 
             // Indietro (verso il parent nel tree) = sempre visibile
-            bool isBack = navigator.IsParent(i, cur);
-            if (isBack) return true;
+            if (navigator.IsParent(i, cur)) return true;
 
-            // Avanti = visibile se la zona è stata sbloccata da una destinazione
-            // soddisfatta, oppure (fallback legacy) se il circuito è attivo ora.
+            // Avanti = visibile se la zona è sbloccata da una destinazione soddisfatta
             if (navigator.IsZoneUnlocked(targetPos)) return true;
             return currentlyActive;
         }
+
+        // 2) Nessun livello adiacente: mostra la freccia se una destinazione
+        //    soddisfatta sblocca un livello NON adiacente in questa direzione.
+        if (navigator.GetUnlockedTargetInDirection(dir) >= 0) return true;
+
         return false;
     }
 }

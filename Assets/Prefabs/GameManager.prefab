@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 80604588385729822}
   - component: {fileID: 2839376445973033052}
+  - component: {fileID: 4202659177183573223}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -47,7 +48,6 @@ MonoBehaviour:
   gridManager: {fileID: 0}
   trayContainer: {fileID: 0}
   piecePrefab: {fileID: 8464705997534955316, guid: 64038c39c5911b34db9e35f6d9bfefbd, type: 3}
-  beltPrefab: {fileID: 2088355005548993731, guid: 3fef3e1df2c3c9e45b13b3c0c4e2e2b8, type: 3}
   currentLevel: {fileID: 11400000, guid: f2d692be233473a4a9912b0be0b9a21c, type: 2}
   winPanel: {fileID: 0}
   undoButton: {fileID: 0}
@@ -56,3 +56,15 @@ MonoBehaviour:
   scrollbarHandleColor: {r: 0.081722096, g: 0.7830189, b: 0, a: 0.9}
   worldNavigator: {fileID: 0}
   levelIndex: 0
+--- !u!114 &4202659177183573223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6433929715410587924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4eea005dd8b384590d11dbe5ef1635, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelPresetSpawner

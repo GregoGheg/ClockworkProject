@@ -18,10 +18,13 @@ public class GridManager : MonoBehaviour
     [HideInInspector] public float cellSize = 80f; // impostato da LevelViewController via WorldLevelConfig
 
     CellState[,] grid;
+
+    /// <summary>True quando l'array delle celle è stato allocato (dopo Awake).</summary>
+    public bool IsReady => grid != null;
     GridCell[,] cellViews;
 
-    public int Width => level.gridWidth;
-    public int Height => level.gridHeight;
+    public int Width => level != null ? level.gridWidth : 0;
+    public int Height => level != null ? level.gridHeight : 0;
 
     public System.Action OnGridChanged;
     /// <summary>Invocato quando un pezzo viene droppato su una cella occupata. Parametri: pezzo droppato, cella target, posizione precedente del pezzo.</summary>
@@ -117,14 +120,14 @@ public class GridManager : MonoBehaviour
     public bool IsInBounds(Vector2Int v) => IsInBounds(v.x, v.y);
 
     public CellState GetCell(int x, int y) =>
-        IsInBounds(x, y) ? grid[x, y] : null;
+        (grid != null && IsInBounds(x, y)) ? grid[x, y] : null;
 
     public CellState GetCell(Vector2Int v) => GetCell(v.x, v.y);
 
     // Una cella è libera se è attiva, in bounds, non occupata e non è source/dest
     public bool IsFree(int x, int y)
     {
-        if (!IsInBounds(x, y)) return false;
+        if (grid == null || !IsInBounds(x, y)) return false;
         var c = grid[x, y];
         return c.isActive && c.occupant == null && !c.isSourceOrDest;
     }

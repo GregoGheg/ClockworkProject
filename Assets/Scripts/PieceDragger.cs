@@ -78,6 +78,21 @@ public class PieceDragger : MonoBehaviour,
         piece = p;
         grid = gm;
 
+        // Garantisci i componenti anche se Awake non è ancora girato
+        // (es. dragger istanziato in un GameObject disattivato durante il preload).
+        if (rectTransform == null) rectTransform = GetComponent<RectTransform>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
+        if (rectTransform != null)
+        {
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.pivot = Vector2.zero;
+        }
+
         // Pulisci ghost rimasti da drag precedenti
         if (dragGhost != null) { Destroy(dragGhost); dragGhost = null; }
 

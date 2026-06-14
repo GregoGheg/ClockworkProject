@@ -126,9 +126,52 @@ public class WorldNavigator : MonoBehaviour
     {
         if (isTransitioning) return;
         var curPos = config.levels[currentIndex].mapPosition;
+
+        // 1) Livello esattamente adiacente in quella direzione (comportamento classico)
         var target = curPos + direction;
         for (int i = 0; i < config.levels.Length; i++)
             if (config.levels[i].mapPosition == target) { NavigateTo(i); return; }
+
+        // 2) Uscita verso una mapPosition NON adiacente: cerca una destinazione
+        //    soddisfatta la cui zona-target sta in questa direzione.
+        int idx = GetUnlockedTargetInDirection(direction);
+        if (idx >= 0) NavigateTo(idx);
+    }
+
+    /// <summary>
+    /// Cerca tra le destinazioni del livello corrente quella soddisfatta la cui
+    /// mapPosition di sblocco si trova nella direzione data (anche non adiacente).
+    /// Restituisce l'indice del livello target, o -1.
+    /// </summary>
+    public int GetUnlockedTargetInDirection(Vector2Int direction)
+    {
+        var grid = CurrentGrid();
+        if (grid == null || grid.level == null) return -1;
+        var curPos = config.levels[currentIndex].mapPosition;
+
+        foreach (var d in grid.level.GetDestinations())
+        {
+            if (!d.HasUnlock) continue;
+            var targetPos = d.unlocksLevelAtMapPosition;
+            var delta = targetPos - curPos;
+            // La direzione deve combaciare (stesso segno sull'asse dominante)
+            if (!SameDirection(delta, direction)) continue;
+            if (!CircuitSolver.IsDestinationSatisfied(grid, d)) continue;
+            // Trova il livello con quella mapPosition
+            for (int i = 0; i < config.levels.Length; i++)
+                if (config.levels[i].mapPosition == targetPos) return i;
+        }
+        return -1;
+    }
+
+    /// <summary>Vero se delta punta nella stessa direzione cardinale di dir.</summary>
+    static bool SameDirection(Vector2Int delta, Vector2Int dir)
+    {
+        if (dir == Vector2Int.right) return delta.x > 0 && delta.y == 0;
+        if (dir == Vector2Int.left) return delta.x < 0 && delta.y == 0;
+        if (dir == Vector2Int.up) return delta.y > 0 && delta.x == 0;
+        if (dir == Vector2Int.down) return delta.y < 0 && delta.x == 0;
+        return false;
     }
 
     public void NavigateTo(int index)

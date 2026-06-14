@@ -40,6 +40,12 @@ public class LevelViewController : MonoBehaviour
         EnsureInitialized(save);
         gameObject.SetActive(true);
         SetInputEnabled(true);
+
+        // Spawn dei preset SOLO ora: il GameObject è attivo, quindi Awake della
+        // griglia è girato e l'array delle celle è allocato (grid.IsReady == true).
+        var spawner = gameManager != null
+            ? gameManager.GetComponent<LevelPresetSpawner>() : null;
+        spawner?.SpawnNow();
     }
 
     public void SetInputEnabled(bool enabled)
