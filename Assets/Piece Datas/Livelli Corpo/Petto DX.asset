@@ -70,6 +70,7 @@ MonoBehaviour:
   sources:
   - position: {x: 8, y: 11}
     energyTypes: 03000000
+    returnsToLevelAtMapPosition: {x: 0, y: 0}
   destinations:
   - position: {x: 0, y: 11}
     energyTypes: 03000000

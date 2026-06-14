@@ -31,10 +31,16 @@ public class LevelData : ScriptableObject
         [Tooltip("Tipi di energia emessi. Vuoto = tutti e tre.")]
         public List<EnergyType> energyTypes = new();
 
+        [Tooltip("OPZIONALE: se impostato, su questa cella di start appare una freccia " +
+                 "di RITORNO al livello con questa mapPosition (solo se quel livello è già " +
+                 "stato visitato). Lascia (9999,9999) per nessun ritorno.")]
+        public Vector2Int returnsToLevelAtMapPosition = new Vector2Int(9999, 9999);
+
+        public bool HasReturn => returnsToLevelAtMapPosition != new Vector2Int(9999, 9999);
+
         public bool Emits(EnergyType t)
         {
             if (energyTypes == null || energyTypes.Count == 0) return true;
-            // Considera solo i 3 tipi base; se la lista non ne contiene nessuno, emette tutto
             bool hasBase = energyTypes.Contains(EnergyType.Mechanical)
                         || energyTypes.Contains(EnergyType.Hydraulic)
                         || energyTypes.Contains(EnergyType.Electric);
