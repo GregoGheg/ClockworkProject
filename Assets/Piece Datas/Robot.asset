@@ -55,30 +55,30 @@ MonoBehaviour:
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   globalPieces:
   - data: {fileID: 11400000, guid: 2970c21d943bfaf4f82cea3188ead14c, type: 2}
-    quantity: 20
+    quantity: 150
   - data: {fileID: 11400000, guid: 4262f706d5a94484d939a78fa7e54e69, type: 2}
-    quantity: 10
+    quantity: 150
   - data: {fileID: 11400000, guid: a331d5ebb190b2d46a036d2e4261df5b, type: 2}
-    quantity: 20
+    quantity: 150
   - data: {fileID: 11400000, guid: f8e4b08f16e161644b4324e7c061ac06, type: 2}
-    quantity: 20
+    quantity: 150
   - data: {fileID: 11400000, guid: 04a5b0fc75a0e0e48b3e62541ecdf9d1, type: 2}
-    quantity: 20
+    quantity: 150
   - data: {fileID: 11400000, guid: c1c1b35f53bd07d4ba3206999b4cb3ff, type: 2}
-    quantity: 2
+    quantity: 150
   - data: {fileID: 11400000, guid: 44f43658013708642948c0ad965f7ca7, type: 2}
-    quantity: 20
+    quantity: 150
   - data: {fileID: 11400000, guid: 89294a06a86ec7246b0b6cf89b2938ca, type: 2}
-    quantity: 5
+    quantity: 150
   - data: {fileID: 11400000, guid: dbaf184babe639e4fbe3236457060344, type: 2}
-    quantity: 5
+    quantity: 150
   - data: {fileID: 11400000, guid: d09258a0529439b4dbef85d22cccf366, type: 2}
-    quantity: 5
+    quantity: 150
   - data: {fileID: 11400000, guid: db1dd5d01c0349d4d95c4431dce191e9, type: 2}
-    quantity: 5
+    quantity: 150
   - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
-    quantity: 5
+    quantity: 150
   - data: {fileID: 11400000, guid: 584692814f4a3c644af47d741abdfd2c, type: 2}
-    quantity: 5
+    quantity: 150
   startLevelIndex: 0
   trayScrollSpeed: 40000

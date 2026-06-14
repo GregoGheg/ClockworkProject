@@ -27,10 +27,10 @@ MonoBehaviour:
   destinations:
   - position: {x: 0, y: 0}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: 0}
+    unlocksLevelAtMapPosition: {x: 0, y: -12}
   - position: {x: 0, y: 6}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: 0}
+    unlocksLevelAtMapPosition: {x: 0, y: -12}
   nodeSpacing: 1200
   cellSize: 100
   gridOffset: {x: 0, y: 0}

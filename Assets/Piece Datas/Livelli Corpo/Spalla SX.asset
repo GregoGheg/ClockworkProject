@@ -70,7 +70,7 @@ MonoBehaviour:
   destinations:
   - position: {x: 10, y: 10}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: 0}
+    unlocksLevelAtMapPosition: {x: 0, y: -10}
   nodeSpacing: 1200
   cellSize: 80
   gridOffset: {x: 0, y: 0}

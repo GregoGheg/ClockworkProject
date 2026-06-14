@@ -35,7 +35,7 @@ MonoBehaviour:
   destinations:
   - position: {x: 4, y: 8}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: 0}
+    unlocksLevelAtMapPosition: {x: 0, y: -2}
   - position: {x: 4, y: 0}
     energyTypes: 03000000
     unlocksLevelAtMapPosition: {x: 0, y: -2}
