@@ -73,17 +73,17 @@ MonoBehaviour:
     returnsToLevelAtMapPosition: {x: 0, y: 0}
   destinations:
   - position: {x: 0, y: 11}
-    energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
+    energyTypes: 01000000
+    unlocksLevelAtMapPosition: {x: -4, y: 0}
   - position: {x: 1, y: 0}
-    energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
+    energyTypes: 00000000
+    unlocksLevelAtMapPosition: {x: -2, y: -2}
   - position: {x: 8, y: 0}
-    energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
+    energyTypes: 01000000
+    unlocksLevelAtMapPosition: {x: 0, y: -2}
   nodeSpacing: 1200
-  cellSize: 80
-  gridOffset: {x: 0, y: 0}
+  cellSize: 70
+  gridOffset: {x: 300, y: 50}
   presetPieces:
   - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
     position: {x: 6, y: 8}

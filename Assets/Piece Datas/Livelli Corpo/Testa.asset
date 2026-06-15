@@ -10,55 +10,49 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 584b8f60156c9c145bf0c90766bdcb80, type: 3}
-  m_Name: Gamba SX
+  m_Name: Testa
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
-  gridWidth: 6
+  gridWidth: 15
   gridHeight: 16
   inactiveCells:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
+  - {x: 0, y: 14}
+  - {x: 0, y: 15}
+  - {x: 1, y: 15}
+  - {x: 1, y: 0}
   - {x: 2, y: 0}
-  - {x: 2, y: 1}
-  - {x: 2, y: 2}
-  - {x: 2, y: 3}
-  - {x: 2, y: 4}
-  - {x: 2, y: 5}
-  - {x: 2, y: 8}
-  - {x: 2, y: 9}
-  - {x: 2, y: 10}
-  - {x: 2, y: 11}
-  - {x: 2, y: 12}
-  - {x: 2, y: 13}
-  - {x: 2, y: 14}
-  - {x: 4, y: 9}
-  - {x: 4, y: 10}
-  - {x: 5, y: 5}
-  - {x: 5, y: 6}
-  - {x: 5, y: 7}
-  - {x: 5, y: 8}
-  - {x: 5, y: 9}
-  - {x: 5, y: 10}
-  - {x: 5, y: 11}
-  - {x: 5, y: 12}
-  - {x: 5, y: 13}
-  - {x: 5, y: 14}
-  - {x: 5, y: 15}
+  - {x: 3, y: 0}
+  - {x: 4, y: 0}
+  - {x: 5, y: 0}
+  - {x: 6, y: 0}
+  - {x: 7, y: 0}
+  - {x: 8, y: 0}
+  - {x: 9, y: 0}
+  - {x: 10, y: 0}
+  - {x: 11, y: 0}
+  - {x: 12, y: 0}
+  - {x: 13, y: 15}
+  - {x: 14, y: 14}
   circuitSource: {x: 0, y: 0}
   circuitDestination: {x: 0, y: 0}
   sourceEnergyTypes: 
   destEnergyTypes: 
   sources:
-  - position: {x: 2, y: 15}
-    energyTypes: 00000000
+  - position: {x: 7, y: 0}
+    energyTypes: 03000000
     returnsToLevelAtMapPosition: {x: 2, y: 0}
   destinations:
-  - position: {x: 1, y: 0}
-    energyTypes: 00000000
-    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
-  - position: {x: 5, y: 0}
+  - position: {x: 0, y: 7}
     energyTypes: 01000000
     unlocksLevelAtMapPosition: {x: 9999, y: 9999}
+  - position: {x: 14, y: 7}
+    energyTypes: 02000000
+    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
+  - position: {x: 7, y: 15}
+    energyTypes: 00000000
+    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   nodeSpacing: 1200
-  cellSize: 65
-  gridOffset: {x: 150, y: 30}
+  cellSize: 70
+  gridOffset: {x: 0, y: 0}
   presetPieces: []

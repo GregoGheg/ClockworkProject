@@ -67,13 +67,13 @@ MonoBehaviour:
   sources:
   - position: {x: 0, y: 11}
     energyTypes: 03000000
-    returnsToLevelAtMapPosition: {x: 9999, y: 9999}
+    returnsToLevelAtMapPosition: {x: 2, y: 0}
   destinations:
   - position: {x: 10, y: 10}
-    energyTypes: 03000000
+    energyTypes: 01000000
     unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   nodeSpacing: 1200
-  cellSize: 80
+  cellSize: 70
   gridOffset: {x: 0, y: 0}
   presetPieces:
   - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}

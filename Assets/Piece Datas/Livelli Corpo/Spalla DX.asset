@@ -31,13 +31,13 @@ MonoBehaviour:
   destEnergyTypes: 
   sources:
   - position: {x: 7, y: 8}
-    energyTypes: 03000000
-    returnsToLevelAtMapPosition: {x: 9999, y: 9999}
+    energyTypes: 01000000
+    returnsToLevelAtMapPosition: {x: -2, y: 0}
   destinations:
   - position: {x: 0, y: 1}
-    energyTypes: 03000000
+    energyTypes: 02000000
     unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   nodeSpacing: 1200
-  cellSize: 80
+  cellSize: 70
   gridOffset: {x: 0, y: 0}
   presetPieces: []

@@ -29,18 +29,18 @@ MonoBehaviour:
   destEnergyTypes: 
   sources:
   - position: {x: 0, y: 14}
-    energyTypes: 03000000
-    returnsToLevelAtMapPosition: {x: 9999, y: 9999}
+    energyTypes: 00000000
+    returnsToLevelAtMapPosition: {x: -2, y: 0}
   destinations:
   - position: {x: 0, y: 0}
-    energyTypes: 03000000
+    energyTypes: 00000000
     unlocksLevelAtMapPosition: {x: 9999, y: 9999}
-  - position: {x: 0, y: 4}
-    energyTypes: 03000000
+  - position: {x: 4, y: 0}
+    energyTypes: 02000000
     unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   nodeSpacing: 1200
   cellSize: 60
-  gridOffset: {x: 0, y: 0}
+  gridOffset: {x: 150, y: 50}
   presetPieces:
   - data: {fileID: 11400000, guid: fadfa935a2571cb4da26186f0fdd1f5d, type: 2}
     position: {x: 4, y: 10}
