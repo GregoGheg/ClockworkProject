@@ -18,39 +18,31 @@ MonoBehaviour:
     displayName: Cuore
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   - levelData: {fileID: 11400000, guid: 39576c1e2dafa0642a88b71c237b16f5, type: 2}
-    mapPosition: {x: 0, y: -2}
+    mapPosition: {x: -1, y: -2}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   - levelData: {fileID: 11400000, guid: 54df89fc80dff4246adb5abf343d5af8, type: 2}
-    mapPosition: {x: 0, y: -4}
+    mapPosition: {x: 1, y: -2}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   - levelData: {fileID: 11400000, guid: 934c8626b34a34b42a02f92a5df28cea, type: 2}
-    mapPosition: {x: 0, y: -6}
+    mapPosition: {x: -3, y: -2}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   - levelData: {fileID: 11400000, guid: 4c5ea6840bc64734dacf861a93aef1fb, type: 2}
-    mapPosition: {x: 0, y: -8}
+    mapPosition: {x: 3, y: -2}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   - levelData: {fileID: 11400000, guid: 27a6dee33b727484c957bf61ff1fba77, type: 2}
-    mapPosition: {x: 0, y: -10}
-    displayName: BraccioSin
-    nodeColor: {r: 0, g: 0, b: 0, a: 0}
-  - levelData: {fileID: 11400000, guid: b8bbfd8fec4c9e04fb08fd3a7d969708, type: 2}
-    mapPosition: {x: 0, y: -12}
-    displayName: BraccioSin
-    nodeColor: {r: 0, g: 0, b: 0, a: 0}
-  - levelData: {fileID: 11400000, guid: b627586d659f6394e9b5675369e5c440, type: 2}
-    mapPosition: {x: 0, y: -14}
+    mapPosition: {x: 0, y: -4}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   - levelData: {fileID: 11400000, guid: aa4aed474b72a784b8e26e3425195d81, type: 2}
-    mapPosition: {x: 0, y: -16}
+    mapPosition: {x: -3, y: -6}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   - levelData: {fileID: 11400000, guid: fef8882ad7ea6904cbe88c7ad79da18b, type: 2}
-    mapPosition: {x: 0, y: -18}
+    mapPosition: {x: 3, y: -6}
     displayName: BraccioSin
     nodeColor: {r: 0, g: 0, b: 0, a: 0}
   globalPieces:
