@@ -74,13 +74,13 @@ MonoBehaviour:
   destinations:
   - position: {x: 0, y: 11}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: -4}
+    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   - position: {x: 1, y: 0}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: -4}
+    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   - position: {x: 8, y: 0}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: -4}
+    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   nodeSpacing: 1200
   cellSize: 80
   gridOffset: {x: 0, y: 0}

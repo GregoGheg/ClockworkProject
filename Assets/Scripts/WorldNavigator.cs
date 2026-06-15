@@ -331,30 +331,41 @@ public class WorldNavigator : MonoBehaviour
 
     /// <summary>
     /// Chiamato da GameManager quando rileva un baule aperto.
-    /// Se il baule non era già stato aperto, aggiunge i premi al pool globale
-    /// e aggiorna il tray del livello corrente.
+    /// Marca il baule come aperto. Se animateReward è false (nessun animatore),
+    /// assegna subito i premi; altrimenti l'animatore li assegnerà all'arrivo.
+    /// Restituisce true se è la PRIMA apertura (così l'animatore parte una volta sola).
     /// </summary>
-    public void OnChestOpened(int levelIdx, Vector2Int chestPos, PieceData chestData)
+    public bool OnChestOpened(int levelIdx, Vector2Int chestPos, PieceData chestData, bool animateReward = false)
     {
         var key = $"{levelIdx}_{chestPos.x}_{chestPos.y}";
-        if (openedChests.Contains(key)) return; // già aperto, non dare premi di nuovo
+        if (openedChests.Contains(key)) return false; // già aperto
         openedChests.Add(key);
 
-        // Aggiungi i premi al pool globale
-        foreach (var reward in chestData.chestRewards)
+        if (!animateReward)
         {
-            if (reward.data == null) continue;
-            var existing = config.globalPieces.Find(g => g.data == reward.data);
-            if (existing != null)
-                existing.quantity += reward.quantity;
-            else
-                config.globalPieces.Add(new WorldLevelConfig.GlobalPieceEntry
-                { data = reward.data, quantity = reward.quantity });
+            // Comportamento classico: assegna subito tutti i premi
+            foreach (var reward in chestData.chestRewards)
+                GrantReward(reward.data, reward.quantity);
+            foreach (var view in levelViews) view.RefreshTray();
         }
+        return true;
+    }
 
-        // Aggiorna il tray di tutti i livelli inizializzati
-        foreach (var view in levelViews)
-            view.RefreshTray();
+    /// <summary>
+    /// Aggiunge un singolo tipo di reward al pool globale e aggiorna i tray.
+    /// Chiamato dall'animatore quando un pezzo volante raggiunge il tray.
+    /// </summary>
+    public void GrantReward(PieceData data, int quantity)
+    {
+        if (data == null || quantity <= 0) return;
+        var existing = config.globalPieces.Find(g => g.data == data);
+        if (existing != null)
+            existing.quantity += quantity;
+        else
+            config.globalPieces.Add(new WorldLevelConfig.GlobalPieceEntry
+            { data = data, quantity = quantity });
+
+        foreach (var view in levelViews) view.RefreshTray();
     }
 
     public bool IsChestOpen(int levelIdx, Vector2Int chestPos)

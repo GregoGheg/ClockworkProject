@@ -43,6 +43,7 @@ MonoBehaviour:
   isCollector: 0
   isBelt: 0
   isChest: 1
+  chestOpenSprite: {fileID: 21300000, guid: f92a5cb265fe7b14d8fa6b3453898802, type: 3}
   chestRequiredEnergy: 0
   chestInputSide: 12
   chestRewards:

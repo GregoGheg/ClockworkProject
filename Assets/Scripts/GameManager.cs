@@ -445,11 +445,26 @@ public class GameManager : MonoBehaviour
         foreach (var src in currentLevel.GetSources())
             openChests.UnionWith(ChestSolver.GetOpenChests(gridManager, src.position));
 
+        var animator = GetComponent<ChestAnimator>();
+        if (openChests.Count > 0)
+            Debug.Log($"[CheckChests] bauli aperti rilevati: {openChests.Count} | animator={(animator != null ? "OK" : "NULL")}");
+
         foreach (var pos in openChests)
         {
             var cell = gridManager.GetCell(pos);
             if (cell?.occupant?.data == null) continue;
-            worldNavigator.OnChestOpened(levelIndex, pos, cell.occupant.data);
+            var chestPiece = cell.occupant;
+
+            bool animate = animator != null;
+            bool firstOpen = worldNavigator.OnChestOpened(levelIndex, pos, chestPiece.data, animate);
+            if (firstOpen && animate)
+            {
+                // Trova il dragger del baule per animarlo
+                PieceDragger chestDragger = null;
+                foreach (var d in gridManager.GetComponentsInChildren<PieceDragger>(true))
+                    if (d.piece == chestPiece) { chestDragger = d; break; }
+                animator.PlayChestOpen(chestPiece, chestDragger, trayContainer);
+            }
         }
     }
 

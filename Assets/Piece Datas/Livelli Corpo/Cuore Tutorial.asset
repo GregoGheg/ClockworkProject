@@ -32,10 +32,11 @@ MonoBehaviour:
   sources:
   - position: {x: 4, y: 4}
     energyTypes: 03000000
+    returnsToLevelAtMapPosition: {x: 9999, y: 9999}
   destinations:
   - position: {x: 4, y: 8}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: -2}
+    unlocksLevelAtMapPosition: {x: 0, y: -4}
   - position: {x: 4, y: 0}
     energyTypes: 03000000
     unlocksLevelAtMapPosition: {x: 0, y: -2}
@@ -45,7 +46,7 @@ MonoBehaviour:
   presetPieces:
   - data: {fileID: 11400000, guid: 9b05f8c633812244e99577649591b40a, type: 2}
     position: {x: 3, y: 3}
-    rotation: 2
+    rotation: 0
     runtimeLength: 0
     locked: 1
     beltEnd: {x: 0, y: 0}

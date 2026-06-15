@@ -143,6 +143,9 @@ public class PieceData : ScriptableObject
     [Tooltip("Se true, questo pezzo è un baule che sblocca pezzi quando riceve l'energia giusta")]
     public bool isChest = false;
 
+    [Tooltip("Sprite del baule APERTO (mostrato durante l'animazione di apertura)")]
+    public Sprite chestOpenSprite;
+
     [Tooltip("Tipo di energia richiesta per aprire il baule")]
     public EnergyType chestRequiredEnergy = EnergyType.Mechanical;
 

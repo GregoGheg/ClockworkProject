@@ -462,7 +462,49 @@ public static class CircuitSolver
         }
         return pumps;
     }
+    public static int BuildConductMapCallsThisFrame = 0;
+    static int _lastFrameReset = -1;
+
+    // ── Cache della conductMap ────────────────────────────────────────────
+    // BuildConductMap è costoso e viene chiamato decine di volte per frame da
+    // tutti i visualizer/solver. La cache lo costruisce UNA volta e lo riusa
+    // finché la griglia non cambia (OnGridChanged chiama InvalidateCache).
+    static GridManager _cacheGrid;
+    static Dictionary<Vector2Int, List<PieceData.EnergyChannel>> _cacheMap;
+    static int _cacheFrame = -1;
+
+    public static void InvalidateConductMapCache()
+    {
+        _cacheMap = null;
+        _cacheGrid = null;
+        _cacheFrame = -1;
+    }
+
     public static Dictionary<Vector2Int, List<PieceData.EnergyChannel>> BuildConductMap(GridManager grid)
+    {
+        // Conta le chiamate per frame (diagnostica lag)
+        if (Time.frameCount != _lastFrameReset)
+        {
+            _lastFrameReset = Time.frameCount;
+            BuildConductMapCallsThisFrame = 0;
+        }
+        BuildConductMapCallsThisFrame++;
+
+        // Riusa la cache se valida per questa griglia e questo frame.
+        // Restituisce una COPIA shallow (nuovo dict, stesse liste) così i solver
+        // che aggiungono chiavi (es. AddBeltGearsToMap) non corrompono la cache.
+        if (_cacheMap != null && _cacheGrid == grid && _cacheFrame == Time.frameCount)
+            return new Dictionary<Vector2Int, List<PieceData.EnergyChannel>>(_cacheMap);
+
+        var map = BuildConductMapUncached(grid);
+        _cacheMap = map;
+        _cacheGrid = grid;
+        _cacheFrame = Time.frameCount;
+        // Anche la prima volta restituisci una copia, così il chiamante può mutarla
+        return new Dictionary<Vector2Int, List<PieceData.EnergyChannel>>(map);
+    }
+
+    static Dictionary<Vector2Int, List<PieceData.EnergyChannel>> BuildConductMapUncached(GridManager grid)
     {
         var map = new Dictionary<Vector2Int, List<PieceData.EnergyChannel>>();
         // Griglia non ancora inizializzata (es. livello pre-caricato disattivato):

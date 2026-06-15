@@ -59,13 +59,14 @@ MonoBehaviour:
   sources:
   - position: {x: 0, y: 20}
     energyTypes: 03000000
+    returnsToLevelAtMapPosition: {x: 9999, y: 9999}
   destinations:
   - position: {x: 1, y: 3}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: -16}
+    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   - position: {x: 3, y: 0}
     energyTypes: 03000000
-    unlocksLevelAtMapPosition: {x: 0, y: -16}
+    unlocksLevelAtMapPosition: {x: 9999, y: 9999}
   nodeSpacing: 1200
   cellSize: 50
   gridOffset: {x: 0, y: 0}
