@@ -59,15 +59,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 0.36440906, g: 0.30909577, b: 0.4339623, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 7fbbccd3616960b44be5e3af849a4b1c, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -88,9 +88,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8e44de304d55d241ab0ae2ac2244729, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridCell
-  emptyColor: {r: 0.3647059, g: 0.30980393, b: 0.43529415, a: 1}
+  emptyColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveColor: {r: 0, g: 0, b: 0, a: 0}
   previewValid: {r: 0.2, g: 0.8, b: 0.3, a: 0.7019608}
   previewInvalid: {r: 0.9, g: 0.2, b: 0.2, a: 0.7607843}
-  sourceColor: {r: 0.19624424, g: 0.9245283, b: 0.7181812, a: 1}
-  destColor: {r: 0.9150943, g: 0.2719384, b: 0.6250848, a: 1}
+  sourceColor: {r: 0.14413491, g: 0.745283, b: 0.14413491, a: 1}
+  destColor: {r: 0.8584906, g: 0, b: 0, a: 1}

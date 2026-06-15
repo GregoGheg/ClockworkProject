@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20f2a231c0a91f94b971d9bc1a4c1301, type: 3}
+  m_Name: PompaRiflessa
+  m_EditorClassIdentifier: Assembly-CSharp::PieceData
+  pieceSprite: {fileID: 21300000, guid: 97e4f57cda0e47c4aab1311b33a146c5, type: 3}
+  pieceSpriteScale: {x: 1, y: 1}
+  pieceSpriteScaleRotated: {x: 1, y: 1}
+  pieceSpriteOffset: {x: 0, y: 0}
+  placeSound: {fileID: 8300000, guid: 85f6ae5488d86ff49b6d2d4127cc1855, type: 3}
+  placeSoundVolume: 1
+  cells:
+  - localCoord: {x: 1, y: 0}
+    occupiesSpace: 1
+    energyChannels:
+    - type: 1
+      conductIn: 1
+      conductOut: 6
+      instability: 0
+    overrideSprite: {fileID: 0}
+    nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
+  - localCoord: {x: 1, y: 1}
+    occupiesSpace: 1
+    energyChannels:
+    - type: 1
+      conductIn: 8
+      conductOut: 2
+      instability: 0
+    overrideSprite: {fileID: 0}
+    nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
+  - localCoord: {x: 0, y: 1}
+    occupiesSpace: 1
+    energyChannels:
+    - type: 1
+      conductIn: 9
+      conductOut: 12
+      instability: 0
+    overrideSprite: {fileID: 0}
+    nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 1
+  - localCoord: {x: 0, y: 0}
+    occupiesSpace: 1
+    energyChannels:
+    - type: 1
+      conductIn: 1
+      conductOut: 4
+      instability: 0
+    overrideSprite: {fileID: 0}
+    nonPhysicalSprite: {fileID: 0}
+    isPumpCell: 0
+  color: {r: 1, g: 1, b: 1, a: 0}
+  trayRowColor: {r: 0, g: 0.24313726, b: 0.7058824, a: 1}
+  resizable: 0
+  isPump: 1
+  pumpOutDirection: 4
+  isConverter: 0
+  isTypedConverter: 0
+  converterInputType: 0
+  converterOutputType: 2
+  isGear: 0
+  isLarge: 0
+  isCollector: 0
+  isBelt: 0
+  isChest: 0
+  chestOpenSprite: {fileID: 0}
+  chestRequiredEnergy: 0
+  chestInputSide: 8
+  chestRewards: []
